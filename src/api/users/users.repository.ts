@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserDto } from 'src/api/users/dto/users.dto';
-import { User } from 'src/api/users/user.entity';
+import { FindOptions, UpdateOptions, WhereOptions } from 'sequelize';
+import { CreateUserDto, UserDto } from 'src/api/users/dto/users.dto';
+import { User } from 'src/entities/user/user.entity';
 import { USERS_REPOSITORY } from 'src/core/constants';
 
 @Injectable()
@@ -9,19 +10,31 @@ export class UsersRepository {
     @Inject(USERS_REPOSITORY) private readonly usersRepository: typeof User,
   ) {}
 
-  async create(user: UserDto): Promise<User> {
+  async one(
+    where: WhereOptions<User>,
+    options?: Omit<FindOptions<User>, 'where'>,
+  ) {
+    return await this.usersRepository.findOne<User>({ where, ...options });
+  }
+
+  async all(): Promise<User[]> {
+    return await this.usersRepository.findAll();
+  }
+
+  async create(user: CreateUserDto): Promise<User> {
     return await this.usersRepository.create<User>(user);
   }
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    return await this.usersRepository.findOne<User>({ where: { email } });
+  async update(id: string, data: Partial<UserDto>) {
+    console.log('file: users.repository.ts:34 - UsersRepository - where:', id);
+    const [, [user]] = await this.usersRepository.update<User>(data, {
+      where: { id },
+      returning: true,
+    });
+    return user;
   }
 
-  async findOneById(id: string): Promise<User | undefined> {
-    return await this.usersRepository.findOne<User>({ where: { id } });
-  }
-
-  async getAll(): Promise<User[]> {
-    return await this.usersRepository.findAll();
+  async delete(id: string): Promise<boolean> {
+    return Boolean(await this.usersRepository.destroy<User>({ where: { id } }));
   }
 }

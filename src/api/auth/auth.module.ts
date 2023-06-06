@@ -10,7 +10,7 @@ import { AuthController } from './auth.controller';
     UsersModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
+      secret: process.env.JWTKEY,
     }),
   ],
   controllers: [AuthController],

@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import { IDatabaseConfig } from 'src/common/types';
+import { IDatabaseConfig } from 'src/shared/types';
 
 dotenv.config();
 

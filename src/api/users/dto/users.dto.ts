@@ -1,4 +1,10 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PartialType,
+} from '@nestjs/swagger';
+import { Exclude, Expose } from 'class-transformer';
 import {
   IsEmail,
   IsString,
@@ -7,43 +13,61 @@ import {
   MinLength,
 } from 'class-validator';
 
+@Exclude()
 export class UserDto {
+  @Expose()
   @ApiProperty({
     example: 'XXXX-XXXX-XXXX-XXXXXX',
     description: '',
   })
   @IsUUID()
-  readonly id: string;
+  id: string;
 
+  @Expose()
   @ApiProperty({ example: 'email@email.com', description: 'User email' })
   @IsEmail({}, { message: 'Incorrect email' })
   @IsString({ message: 'must be a string' })
-  readonly email: string;
+  email: string;
 
+  // @Exclude()
   @ApiProperty({ example: '1234567', description: 'Password' })
   @IsString({ message: 'must be string' })
   @MinLength(6)
   @MaxLength(20)
   // @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'The password is very weak' })
-  readonly password: string;
+  password: string;
 
+  @Expose()
   @ApiProperty()
   @IsString({ message: 'must be a string' })
-  readonly first_name: string;
+  first_name: string;
 
+  @Expose()
   @ApiProperty()
   @IsString({ message: 'must be a string' })
-  readonly last_name: string;
+  last_name: string;
 
+  @Expose()
   @ApiPropertyOptional()
   @IsString({ message: 'must be a string' })
-  readonly middle_name: string;
+  middle_name: string;
 
+  @Expose()
   @ApiPropertyOptional()
   @IsString({ message: 'must be a string' })
-  readonly username: string;
+  username: string;
 
+  @Expose()
   @ApiPropertyOptional()
   @IsString({ message: 'must be a string' })
-  readonly avatar_url: string;
+  avatar_url: string;
+
+  // constructor(partial: Partial<UserDto>) {
+  //   Object.assign(this, partial);
+  // }
 }
+
+export class CreateUserDto extends OmitType(UserDto, ['id'] as const) {}
+export class UpdateUserDto extends OmitType(PartialType(UserDto), [
+  'id',
+] as const) {}
