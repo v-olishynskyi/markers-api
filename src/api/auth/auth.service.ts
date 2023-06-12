@@ -48,10 +48,11 @@ export class AuthService {
         { userId: user.id },
         { expiresIn: '7d' },
       ),
+      user,
     };
   }
 
-  async register(registrationData: CreateUserDto): Promise<UserDto> {
+  async signUp(registrationData: CreateUserDto): Promise<UserDto> {
     return await this.usersService.create(registrationData);
   }
 }

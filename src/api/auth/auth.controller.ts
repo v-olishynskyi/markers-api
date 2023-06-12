@@ -1,4 +1,11 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/api/users/dto/users.dto';
@@ -9,13 +16,6 @@ import { Response } from 'express';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @ApiOperation({ summary: 'Registration for new user' })
-  @ApiResponse({ status: HttpStatus.CREATED })
-  @Post('/sign-up')
-  async signUp(@Body() signUpData: CreateUserDto) {
-    return await this.authService.register(signUpData);
-  }
 
   @ApiOperation({ summary: 'Login' })
   @ApiResponse({ status: HttpStatus.OK })
@@ -29,5 +29,24 @@ export class AuthController {
     // res.cookie()
 
     return authResult;
+  }
+
+  @ApiOperation({ summary: 'Registration for new user' })
+  @ApiResponse({ status: HttpStatus.CREATED })
+  @Post('/sign-up')
+  async signUp(@Body() signUpData: CreateUserDto) {
+    try {
+      await this.authService.signUp({
+        ...signUpData,
+        email: signUpData.email.toLowerCase(),
+      });
+
+      return {
+        message: 'Реєстрація успішна',
+      };
+    } catch (error) {
+      console.log(JSON.stringify(error, null, 2));
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
   }
 }
