@@ -18,7 +18,7 @@ export class User extends Model<User> {
     // allowNull: false,
     unique: { name: 'id', msg: 'must be unique' },
   })
-  id: string;
+  declare id: string;
 
   @Column({
     type: DataType.STRING,

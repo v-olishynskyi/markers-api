@@ -10,30 +10,68 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
 import { SerializeInterceptor } from 'src/shared/interceptors';
+import { PaginatedResponse } from 'src/shared/types';
+import { ApiPaginationResponse } from 'src/shared/decorators/ApiPaginatedResponse.decorator';
+import { MarkerDto } from 'src/api/markers/dto/markers.dto';
 
 @ApiTags('Users')
-// @UseGuards(AuthGuard)
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/')
+  @Get('/all')
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.usersService.getAll();
     return users;
   }
 
+  @Get('/')
+  @ApiPaginationResponse(UserDto)
+  async getAllUsersByPaginations(
+    @Param('page') page: number,
+    @Param('limit') limit: number,
+  ): Promise<PaginatedResponse<UserDto>> {
+    const offset = page * limit;
+
+    const paginatedResponse = await this.usersService.paginated({
+      limit,
+      offset,
+    });
+
+    const response: PaginatedResponse<UserDto> = {
+      data: paginatedResponse.rows,
+      limit,
+      page,
+      total: paginatedResponse.count,
+    };
+
+    return response;
+  }
+
+  @Get('/profile')
+  @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
+  async getProfile(@Req() req: Request) {
+    const userId = req['userId'];
+
+    const user = await this.usersService.getById(userId);
+
+    return user;
+  }
+
   @Get('/:id')
-  @UseInterceptors(new SerializeInterceptor(['password']))
+  // @UseInterceptors(new SerializeInterceptor(['password']))
   @ApiResponse({ status: HttpStatus.OK })
   async getById(@Param('id') id: string): Promise<UserDto> {
     const user = await this.usersService.getById(id);

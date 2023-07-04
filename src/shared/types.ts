@@ -13,3 +13,15 @@ export interface IDatabaseConfig {
   test: IDatabaseConfigAttributes;
   prod: IDatabaseConfigAttributes;
 }
+
+export type PaginationParams = {
+  offset: number;
+  limit: number;
+};
+
+export type PaginatedResponse<TData = any> = {
+  data: TData[];
+  page: number;
+  limit: number;
+  total: number;
+};

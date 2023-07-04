@@ -3,6 +3,7 @@ import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto';
 import { UsersRepository } from 'src/api/users/users.repository';
 import { WhereOptions } from 'sequelize';
 import { User } from 'src/entities/user/user.entity';
+import { PaginationParams } from 'src/shared/types';
 
 @Injectable()
 export class UsersService {
@@ -10,6 +11,10 @@ export class UsersService {
 
   async getAll(): Promise<UserDto[]> {
     return await this.usersRepository.all();
+  }
+
+  async paginated(params: PaginationParams) {
+    return await this.usersRepository.allByPagination(params);
   }
 
   async findById(id: string): Promise<UserDto | null> {
@@ -66,8 +71,8 @@ export class UsersService {
 
     if (!user) {
       throw new HttpException(
-        'User with this email already exist',
-        HttpStatus.CONFLICT,
+        'User with this email not found',
+        HttpStatus.NOT_FOUND,
       );
     }
 

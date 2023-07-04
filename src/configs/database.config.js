@@ -1,9 +1,6 @@
-import * as dotenv from 'dotenv';
-import { IDatabaseConfig } from 'src/shared/types';
+require('dotenv').config();
 
-dotenv.config();
-
-export const databaseConfig: IDatabaseConfig = {
+module.exports = {
   dev: {
     username: process.env.DB_USER,
     password: process.env.DB_PASS,
