@@ -9,14 +9,20 @@
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "./",
+    "paths": {
+      "src/common/*": ["src/common/*"],
+      "src/configs/*": ["src/configs/*"],
+      "src/database/*": ["src/database/*"],
+      "src/providers/*": ["src/providers/*"]
+    }
   }
 }
