@@ -1,10 +1,17 @@
 'use strict';
-import users from '../seed.data/users';
+const users = require('../seed.data/users');
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.bulkInsert('Users', users);
+    return queryInterface.bulkInsert(
+      'users',
+      users.map((user) => ({
+        ...user,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })),
+    );
   },
 
   async down(queryInterface, Sequelize) {
@@ -15,6 +22,6 @@ module.exports = {
      * await queryInterface.bulkDelete('People', null, {});
      */
 
-    return await queryInterface.bulkDelete('Users', null, {});
+    return await queryInterface.bulkDelete('users', null, {});
   },
 };

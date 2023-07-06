@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.createTable('Users', {
+    return queryInterface.createTable('users', {
       id: {
         type: Sequelize.STRING,
         primaryKey: true,
@@ -17,13 +17,13 @@ module.exports = {
       password: { type: Sequelize.STRING, allowNull: false, unique: false },
       first_name: { type: Sequelize.STRING, allowNull: false, unique: false },
       last_name: { type: Sequelize.STRING, allowNull: false, unique: false },
-      username: { type: Sequelize.STRING, allowNull: false, unique: true },
+      username: { type: Sequelize.STRING, allowNull: true, unique: true },
       middle_name: { type: Sequelize.STRING, allowNull: false, unique: false },
-      avatar_url: { type: Sequelize.STRING, allowNull: false, unique: true },
+      avatar_url: { type: Sequelize.STRING, allowNull: true, unique: false },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.dropTable('Users');
+    return queryInterface.dropTable('users');
   },
 };

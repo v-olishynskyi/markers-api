@@ -1,7 +1,7 @@
+require('dotenv').config();
+
 import { DEV, PROD, TEST } from 'src/common/constants';
 import { IDatabaseConfig } from 'src/common/types';
-
-require('dotenv').config();
 
 export default {
   [DEV]: {

@@ -10,6 +10,7 @@ import { v4 as uuid } from 'uuid';
       user.password = await heshPassword(user.password);
     },
   },
+  underscored: true,
 })
 export class User extends Model<User> {
   @Column({
@@ -52,6 +53,7 @@ export class User extends Model<User> {
     type: DataType.STRING,
     allowNull: true,
     unique: true,
+    defaultValue: null,
   })
   username: string;
 
@@ -66,6 +68,7 @@ export class User extends Model<User> {
     type: DataType.STRING,
     allowNull: true,
     unique: false,
+    defaultValue: null,
   })
   avatar_url: string;
 }

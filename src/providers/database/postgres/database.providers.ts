@@ -22,7 +22,10 @@ export const databaseProviders = [
         default:
           config = databaseConfig[DEV];
       }
-      const sequelize = new Sequelize({ ...config, timezone: '+00:00' });
+      const sequelize = new Sequelize({
+        ...config,
+        timezone: '+00:00',
+      });
       sequelize.addModels([User, Marker]);
       await sequelize.sync();
       return sequelize;
