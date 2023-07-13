@@ -22,8 +22,8 @@ import {
 } from '@nestjs/swagger';
 import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
-import { PaginatedResponse } from 'src/common/types';
 import { ApiPaginationResponse } from 'src/common/decorators/ApiPaginatedResponse.decorator';
+import { PaginationResponse } from 'src/common/helpers';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -45,22 +45,11 @@ export class UsersController {
   async getAllUsersByPaginations(
     @Query('page') page: number,
     @Query('limit') limit: number,
-  ): Promise<PaginatedResponse<UserDto>> {
-    const offset = page * limit;
-
-    const paginatedResponse = await this.usersService.paginated({
-      limit,
-      offset,
-    });
-
-    const response: PaginatedResponse<UserDto> = {
-      data: paginatedResponse.rows,
-      limit,
+  ): Promise<PaginationResponse<UserDto>> {
+    return await this.usersService.paginated({
       page,
-      total: paginatedResponse.count,
-    };
-
-    return response;
+      limit,
+    });
   }
 
   @Get('/profile')

@@ -22,7 +22,13 @@ export class UsersRepository {
     return await this.usersRepository.findAll();
   }
 
-  async allByPagination({ offset, limit }: PaginationParams): Promise<{
+  async allByPagination({
+    offset,
+    limit,
+  }: {
+    offset: number;
+    limit: number;
+  }): Promise<{
     rows: User[];
     count: number;
   }> {

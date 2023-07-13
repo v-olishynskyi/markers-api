@@ -17,13 +17,13 @@ export interface IDatabaseConfig {
 }
 
 export type PaginationParams = {
-  offset: number;
+  page: number;
   limit: number;
 };
 
-export type PaginatedResponse<TData = any> = {
-  data: TData[];
-  page: number;
-  limit: number;
-  total: number;
-};
+// export type PaginatedResponse<TData = any> = {
+//   data: TData[];
+//   page: number;
+//   limit: number;
+//   total: number;
+// };

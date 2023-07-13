@@ -1,4 +1,10 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import {
+  Column,
+  CreatedAt,
+  DataType,
+  Model,
+  Table,
+} from 'sequelize-typescript';
 import { heshPassword } from 'src/common/helpers';
 import { v4 as uuid } from 'uuid';
 
@@ -11,6 +17,9 @@ import { v4 as uuid } from 'uuid';
     },
   },
   underscored: true,
+  timestamps: false,
+  // updatedAt: 'updated_at',
+  // createdAt: 'created_at',
 })
 export class User extends Model<User> {
   @Column({

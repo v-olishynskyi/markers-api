@@ -8,6 +8,7 @@ import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
 import { WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
+import { PaginationResponse } from 'src/common/helpers';
 
 @Injectable()
 export class UsersService {
@@ -17,8 +18,33 @@ export class UsersService {
     return await this.usersRepository.all();
   }
 
-  async paginated(params: PaginationParams) {
-    return await this.usersRepository.allByPagination(params);
+  async paginated({ limit, page }: PaginationParams) {
+    const _page = +page;
+    const _limit = +limit;
+    const offset = _page * _limit;
+
+    const { count, rows } = await this.usersRepository.allByPagination({
+      limit: _limit,
+      offset: offset,
+    });
+
+    const last_page = Math.floor(count / _limit);
+    const next_page = _page === last_page ? null : Number(_page + 1);
+    const prev_page = _page > 0 ? _page - 1 : null;
+
+    const response: PaginationResponse<UserDto> = {
+      data: rows,
+      meta: {
+        current_page: +_page,
+        last_page,
+        per_page: +_limit,
+        total: count,
+        next_page,
+        prev_page,
+      },
+    };
+
+    return response;
   }
 
   async findById(id: string): Promise<UserDto | null> {

@@ -3,25 +3,25 @@ import { IsInt } from 'class-validator';
 import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
 
 export class PaginationMetadata {
-  @ApiProperty({ name: 'page', example: 1 })
+  @ApiProperty({ name: 'current_page', example: 1 })
   @IsInt()
-  page: number;
+  current_page: number;
 
   @ApiProperty({ name: 'perPage', example: 1 })
   @IsInt()
-  perPage: number;
+  per_page: number;
 
   @ApiProperty({ name: 'prevPage', example: 1 })
   @IsNullOrType('number')
-  prevPage: number | null;
+  prev_page: number | null;
 
   @ApiProperty({ name: 'nextPage', example: 1 })
   @IsNullOrType('number')
-  nextPage: number | null;
+  next_page: number | null;
 
   @ApiProperty({ name: 'page', example: 1 })
   @IsInt()
-  lastPage: number;
+  last_page: number;
 
   @ApiProperty({ name: 'total', example: 1 })
   @IsInt()

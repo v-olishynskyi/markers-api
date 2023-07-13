@@ -1,5 +1,15 @@
 [
   {
+    "id": "5EC7BD8E-BA2B-1287-4909-4D18A4E5747D",
+    "email": "email@email.com",
+    "first_name": "Test",
+    "last_name": "User",
+    "avatar_url": null,
+    "middle_name": "",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
     "id": "5EC7BD8E-BA2B-1287-3609-2D05A3E5347D",
     "email": "cursus.vestibulum@protonmail.ca",
     "first_name": "Bruno",
@@ -46,6 +56,156 @@
     "last_name": "Hall",
     "avatar_url": null,
     "middle_name": "Florence",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "098B560C-A411-C459-0635-89AF8C8BEA63",
+    "email": "parturient.montes@protonmail.edu",
+    "first_name": "Ali",
+    "last_name": "Wolfe",
+    "avatar_url": null,
+    "middle_name": "Kadeem",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "E7A9CD25-2568-6E95-4DDE-B324FBEB6DB4",
+    "email": "nunc@hotmail.com",
+    "first_name": "Mona",
+    "last_name": "Luna",
+    "avatar_url": null,
+    "middle_name": "Urielle",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "958C4027-9263-2AC2-36B4-C6972DA6F1A1",
+    "email": "eu.erat.semper@outlook.ca",
+    "first_name": "Colette",
+    "last_name": "Berry",
+    "avatar_url": null,
+    "middle_name": "Pascale",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "9DA553EB-865C-5974-7F2B-BD1EA2F4088A",
+    "email": "dolor.elit@outlook.ca",
+    "first_name": "Joel",
+    "last_name": "Buckner",
+    "avatar_url": null,
+    "middle_name": "Cadman",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "1D9AF7E2-F983-4BC3-6F3E-CD43C5BD6ECB",
+    "email": "tristique.ac@icloud.net",
+    "first_name": "Sopoline",
+    "last_name": "Glover",
+    "avatar_url": null,
+    "middle_name": "Elvis",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "6D52CA2D-CB3B-AA7B-A3DA-DB1617EB48AA",
+    "email": "eget.venenatis@hotmail.couk",
+    "first_name": "Shay",
+    "last_name": "Medina",
+    "avatar_url": null,
+    "middle_name": "Aimee",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "1EDF0495-D1A4-2440-6EEC-D1808C755A88",
+    "email": "tempus.mauris.erat@icloud.ca",
+    "first_name": "Tanya",
+    "last_name": "Mclaughlin",
+    "avatar_url": null,
+    "middle_name": "Coby",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "8B86CEAA-E115-20FB-BA11-D23B73D67E8B",
+    "email": "pellentesque@protonmail.net",
+    "first_name": "Deborah",
+    "last_name": "Nelson",
+    "avatar_url": null,
+    "middle_name": "Mohammad",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "EE799408-5652-C5A6-8ADB-61C43B9C389B",
+    "email": "eget@hotmail.com",
+    "first_name": "Rae",
+    "last_name": "Wilson",
+    "avatar_url": null,
+    "middle_name": "Vincent",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "FE24E963-E75A-5D83-B49E-54381903B427",
+    "email": "in.molestie@yahoo.edu",
+    "first_name": "Ulysses",
+    "last_name": "Colon",
+    "avatar_url": null,
+    "middle_name": "Austin",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "772B4962-551E-B236-A1A9-B59B25983357",
+    "email": "placerat.velit@outlook.ca",
+    "first_name": "Calvin",
+    "last_name": "Spencer",
+    "avatar_url": null,
+    "middle_name": "Donovan",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "4F38B1BA-D07F-409E-6215-99F158207154",
+    "email": "faucibus.id@google.edu",
+    "first_name": "Carson",
+    "last_name": "Mayo",
+    "avatar_url": null,
+    "middle_name": "Marsden",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "A37BFE7D-C2C1-3DAD-95CC-3DA52D71904E",
+    "email": "at.iaculis@aol.net",
+    "first_name": "Laura",
+    "last_name": "Cobb",
+    "avatar_url": null,
+    "middle_name": "Veda",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "E69254E7-052D-4C4D-3E93-823161E7829D",
+    "email": "risus@aol.com",
+    "first_name": "Ann",
+    "last_name": "Bishop",
+    "avatar_url": null,
+    "middle_name": "Hilel",
+    "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
+    "username": null
+  },
+  {
+    "id": "5300F5FA-6924-364E-44B6-E02B35F51FAA",
+    "email": "mauris.integer.sem@outlook.couk",
+    "first_name": "Hilary",
+    "last_name": "Stafford",
+    "avatar_url": null,
+    "middle_name": "Calvin",
     "password": "$2b$12$cexIp563fGI1zgXoAA8ubegesUMjCIe21c3X4hFi3VPMeHuu1owEi",
     "username": null
   }

@@ -8,8 +8,8 @@ module.exports = {
       'users',
       users.map((user) => ({
         ...user,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        // created_at: new Date().toISOString(),
+        // updated_at: new Date().toISOString(),
       })),
     );
   },
