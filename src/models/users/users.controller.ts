@@ -32,6 +32,7 @@ import { PaginationResponse } from 'src/common/helpers';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiOperation({ summary: 'Get all users' })
   @Get('/all')
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   async getAllUsers(): Promise<UserDto[]> {
@@ -52,6 +53,7 @@ export class UsersController {
     });
   }
 
+  @ApiOperation({ summary: 'Get user profile' })
   @Get('/profile')
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   async getProfile(@Req() req: Request) {
@@ -62,6 +64,7 @@ export class UsersController {
     return user;
   }
 
+  @ApiOperation({ summary: 'Get user by id' })
   @Get('/:id')
   // @UseInterceptors(new SerializeInterceptor(['password']))
   @ApiResponse({ status: HttpStatus.OK })
@@ -70,6 +73,7 @@ export class UsersController {
     return user;
   }
 
+  @ApiOperation({ summary: 'Create user' })
   @Post('/')
   @ApiResponse({ status: HttpStatus.CREATED, type: [UserDto] })
   async create(@Body() data: CreateUserDto): Promise<UserDto> {
@@ -80,6 +84,7 @@ export class UsersController {
     }
   }
 
+  @ApiOperation({ summary: 'Update user by id' })
   @Put('/:id')
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   async update(
@@ -93,6 +98,7 @@ export class UsersController {
     }
   }
 
+  @ApiOperation({ summary: 'Delete user by id' })
   @Delete('/:id')
   @ApiResponse({ status: HttpStatus.OK })
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {

@@ -8,7 +8,7 @@ import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
 import { WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
-import { PaginationResponse } from 'src/common/helpers';
+import { PaginationResponse, wait } from 'src/common/helpers';
 
 @Injectable()
 export class UsersService {
