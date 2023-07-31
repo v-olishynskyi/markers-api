@@ -4,4 +4,5 @@ export const TEST = 'test';
 export const PROD = 'production';
 
 export const USERS_REPOSITORY = 'USERS_REPOSITORY';
+export const USER_SESSIONS_REPOSITORY = 'USER_SESSIONS_REPOSITORY';
 export const MARKERS_REPOSITORY = 'MARKERS_REPOSITORY';

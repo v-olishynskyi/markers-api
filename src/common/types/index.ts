@@ -19,6 +19,7 @@ export interface IDatabaseConfig {
 export type PaginationParams = {
   page: number;
   limit: number;
+  search?: string | null;
 };
 
 // export type PaginatedResponse<TData = any> = {

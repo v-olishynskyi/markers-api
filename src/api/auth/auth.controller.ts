@@ -1,15 +1,17 @@
+import { Body, Controller, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  HttpException,
-  HttpStatus,
-  Post,
-  Res,
-} from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { SignInDto } from './dto/auth.dto';
-import { Response } from 'express';
+import {
+  RefreshTokenResponseDto,
+  SignInDataDto,
+  SignInResponseDto,
+} from './dto/auth.dto';
+import { Request, Response } from 'express';
 import { CreateUserDto } from 'src/models/users/dto/users.dto';
 
 @ApiTags('Auth')
@@ -17,36 +19,91 @@ import { CreateUserDto } from 'src/models/users/dto/users.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiOperation({ summary: 'Login' })
-  @ApiResponse({ status: HttpStatus.OK })
+  @ApiOperation({
+    summary: 'Login',
+    description: 'Authorization by email and password',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: SignInResponseDto })
   @Post('/sign-in')
   async signIn(
-    @Body() signInData: SignInDto,
+    @Body() signInData: SignInDataDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const authResult = await this.authService.signIn(signInData);
+    const userAgent = req.headers['user-agent'];
 
-    // res.cookie()
+    const { access_token, refresh_token, session_id, user } =
+      await this.authService.signIn(signInData, userAgent || '');
 
-    return authResult;
+    const response: SignInResponseDto = {
+      access_token,
+      refresh_token,
+      session_id,
+      user: { ...user, password: '' },
+    };
+
+    res.cookie('refresh_token', refresh_token, {});
+    res.cookie('session_id', session_id, {});
+
+    return response;
   }
 
-  @ApiOperation({ summary: 'Registration for new user' })
+  @ApiOperation({
+    summary: 'Registration',
+    description: 'Registration new user',
+  })
   @ApiResponse({ status: HttpStatus.CREATED })
   @Post('/sign-up')
   async signUp(@Body() signUpData: CreateUserDto) {
-    try {
-      await this.authService.signUp({
-        ...signUpData,
-        email: signUpData.email.toLowerCase(),
-      });
+    await this.authService.signUp({
+      ...signUpData,
+      email: signUpData.email.toLowerCase(),
+    });
 
-      return {
-        message: 'Реєстрація успішна',
-      };
-    } catch (error) {
-      console.log(JSON.stringify(error, null, 2));
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    return {
+      message: 'Реєстрація успішна',
+    };
+  }
+
+  // @UseGuards(RefreshTokenGuard)
+  @ApiOperation({
+    summary: 'Refresh',
+    description: 'Refresh user access token by refresh token',
+  })
+  @ApiOkResponse({ type: RefreshTokenResponseDto })
+  @Post('/refresh')
+  async refreshAccessToken(@Req() req: Request) {
+    let refreshToken = req.cookies['refresh_token'];
+    if (!refreshToken) {
+      refreshToken = req.body['refresh_token'];
     }
+    console.log(
+      'file: auth.controller.ts:80 - AuthController - refreshAccessToken - refreshToken:',
+      refreshToken,
+    );
+
+    const refreshResponse = await this.authService.refreshAccessToken(
+      refreshToken,
+    );
+
+    return refreshResponse;
+  }
+
+  @ApiOperation({
+    summary: 'Logout',
+  })
+  @ApiOkResponse()
+  @Post('/logout')
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    let sessionId = req.cookies['session_id'];
+
+    if (!sessionId) {
+      sessionId = req.body['session_id'];
+    }
+
+    await this.authService.logout(sessionId);
+
+    res.clearCookie('refresh_token');
+    res.clearCookie('session_id');
   }
 }

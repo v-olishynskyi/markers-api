@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    return queryInterface.createTable('users', {
+    return queryInterface.createTable('Users', {
       id: {
         type: Sequelize.STRING,
         primaryKey: true,
@@ -20,10 +20,12 @@ module.exports = {
       username: { type: Sequelize.STRING, allowNull: true, unique: true },
       middle_name: { type: Sequelize.STRING, allowNull: false, unique: false },
       avatar_url: { type: Sequelize.STRING, allowNull: true, unique: false },
+      created_at: { type: Sequelize.DATE },
+      updated_at: { type: Sequelize.DATE },
     });
   },
 
   async down(queryInterface, Sequelize) {
-    return queryInterface.dropTable('users');
+    return queryInterface.dropTable('Users');
   },
 };

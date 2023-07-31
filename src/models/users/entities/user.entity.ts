@@ -2,59 +2,50 @@ import {
   Column,
   CreatedAt,
   DataType,
+  IsEmail,
   Model,
   Table,
+  Unique,
+  UpdatedAt,
 } from 'sequelize-typescript';
 import { heshPassword } from 'src/common/helpers';
 import { v4 as uuid } from 'uuid';
 
 @Table({
-  name: { plural: 'users', singular: 'user' },
+  name: { plural: 'Users', singular: 'User' },
   hooks: {
     async beforeCreate(user: User) {
       user.id = uuid();
       user.password = await heshPassword(user.password);
     },
   },
-  underscored: true,
-  timestamps: false,
-  // updatedAt: 'updated_at',
-  // createdAt: 'created_at',
+  underscored: false,
+  timestamps: true,
 })
 export class User extends Model<User> {
   @Column({
-    type: DataType.STRING,
+    type: DataType.UUID,
     primaryKey: true,
-    // allowNull: false,
-    unique: { name: 'id', msg: 'must be unique' },
   })
   declare id: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    unique: { name: 'email', msg: 'must be unique' },
-  })
+  @IsEmail
+  @Unique
+  @Column
   email: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    unique: false,
-  })
+  @Column
   password: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    unique: false,
   })
   first_name: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    unique: false,
   })
   last_name: string;
 
@@ -64,14 +55,14 @@ export class User extends Model<User> {
     unique: true,
     defaultValue: null,
   })
-  username: string;
+  username: string | null;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
     unique: false,
   })
-  middle_name: string;
+  middle_name: string | null;
 
   @Column({
     type: DataType.STRING,
@@ -79,5 +70,13 @@ export class User extends Model<User> {
     unique: false,
     defaultValue: null,
   })
-  avatar_url: string;
+  avatar_url: string | null;
+
+  @CreatedAt
+  @Column({ field: 'created_at' })
+  created_at: Date;
+
+  @UpdatedAt
+  @Column({ field: 'updated_at' })
+  updated_at: Date;
 }

@@ -3,6 +3,7 @@ import { User } from 'src/models/users/entities/user.entity';
 import { Marker } from 'src/models/markers/entities/marker.entity';
 import databaseConfig from 'src/configs/database/postgres';
 import { SEQUELIZE, DEV, PROD, TEST } from 'src/common/constants';
+import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 
 export const databaseProviders = [
   {
@@ -26,7 +27,7 @@ export const databaseProviders = [
         ...config,
         timezone: '+00:00',
       });
-      sequelize.addModels([User, Marker]);
+      sequelize.addModels([User, Marker, UserSession]);
       await sequelize.sync();
       return sequelize;
     },

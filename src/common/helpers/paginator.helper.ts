@@ -30,6 +30,7 @@ export default async function paginator<TResponse>(
       total: count,
       next_page,
       prev_page,
+      search: '',
     },
   };
 

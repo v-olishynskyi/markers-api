@@ -26,6 +26,10 @@ export class PaginationMetadata {
   @ApiProperty({ name: 'total', example: 1 })
   @IsInt()
   total: number;
+
+  @ApiProperty({ name: 'search', example: 'Name' })
+  @IsNullOrType('string')
+  search: string | null;
 }
 
 export class PaginationResponse<TModel> {

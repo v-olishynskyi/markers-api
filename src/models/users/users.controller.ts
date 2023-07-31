@@ -17,6 +17,7 @@ import { UsersService } from './users.service';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -33,8 +34,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiOperation({ summary: 'Get all users' })
-  @Get('/all')
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
+  @Get('/all')
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.usersService.getAll();
     return users;
@@ -42,20 +43,25 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get all users with paginations' })
   @ApiPaginationResponse(UserDto)
+  @ApiQuery({ name: 'page', required: true, type: Number })
+  @ApiQuery({ name: 'limit', required: true, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
   @Get('/')
   async getAllUsersByPaginations(
     @Query('page') page: number,
     @Query('limit') limit: number,
+    @Query('search') search?: string | null,
   ): Promise<PaginationResponse<UserDto>> {
     return await this.usersService.paginated({
       page,
       limit,
+      search: search,
     });
   }
 
   @ApiOperation({ summary: 'Get user profile' })
   @Get('/profile')
-  @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
+  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
   async getProfile(@Req() req: Request) {
     const userId = req['userId'];
 
@@ -64,43 +70,34 @@ export class UsersController {
     return user;
   }
 
-  @ApiOperation({ summary: 'Get user by id' })
+  @ApiOperation({ summary: 'Get user', description: 'Get user by id' })
+  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
   @Get('/:id')
-  // @UseInterceptors(new SerializeInterceptor(['password']))
-  @ApiResponse({ status: HttpStatus.OK })
-  async getById(@Param('id') id: string): Promise<UserDto> {
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<UserDto> {
     const user = await this.usersService.getById(id);
     return user;
   }
 
   @ApiOperation({ summary: 'Create user' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: UserDto })
   @Post('/')
-  @ApiResponse({ status: HttpStatus.CREATED, type: [UserDto] })
   async create(@Body() data: CreateUserDto): Promise<UserDto> {
-    try {
-      return this.usersService.create(data);
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
-    }
+    return this.usersService.create(data);
   }
 
-  @ApiOperation({ summary: 'Update user by id' })
+  @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
   @Put('/:id')
-  @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
+  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateUserDto,
   ): Promise<UserDto> {
-    try {
-      return this.usersService.update(id, data);
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
-    }
+    return this.usersService.update(id, data);
   }
 
-  @ApiOperation({ summary: 'Delete user by id' })
-  @Delete('/:id')
+  @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })
   @ApiResponse({ status: HttpStatus.OK })
+  @Delete('/:id')
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
     try {
       return this.usersService.delete(id);
