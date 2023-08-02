@@ -1,13 +1,16 @@
 import {
+  BelongsToMany,
   Column,
   CreatedAt,
   DataType,
+  HasMany,
   IsEmail,
   Model,
   Table,
   Unique,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { heshPassword } from 'src/common/helpers';
 import { v4 as uuid } from 'uuid';
 
@@ -71,6 +74,9 @@ export class User extends Model<User> {
     defaultValue: null,
   })
   avatar_url: string | null;
+
+  @HasMany(() => UserSession, 'user_id')
+  sessions: UserSession[];
 
   @CreatedAt
   @Column({ field: 'created_at' })

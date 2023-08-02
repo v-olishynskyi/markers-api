@@ -65,7 +65,6 @@ export class AuthController {
     };
   }
 
-  // @UseGuards(RefreshTokenGuard)
   @ApiOperation({
     summary: 'Refresh',
     description: 'Refresh user access token by refresh token',
@@ -77,10 +76,6 @@ export class AuthController {
     if (!refreshToken) {
       refreshToken = req.body['refresh_token'];
     }
-    console.log(
-      'file: auth.controller.ts:80 - AuthController - refreshAccessToken - refreshToken:',
-      refreshToken,
-    );
 
     const refreshResponse = await this.authService.refreshAccessToken(
       refreshToken,

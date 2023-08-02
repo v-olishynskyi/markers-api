@@ -10,15 +10,17 @@ export class UsersRepository {
     @Inject(USERS_REPOSITORY) private readonly userModel: typeof User,
   ) {}
 
-  async one(
-    where: WhereOptions<User>,
-    options?: Omit<FindOptions<User>, 'where'>,
-  ): Promise<User | null> {
-    return await this.userModel.findOne<User>({ where, ...options });
+  async one(options: FindOptions<User>): Promise<User | null> {
+    return await this.userModel.findOne<User>({
+      attributes: { exclude: ['password'], ...options.attributes },
+      ...options,
+    });
   }
 
   async all(): Promise<User[]> {
-    return await this.userModel.findAll();
+    return await this.userModel.findAll({
+      attributes: { exclude: ['password'] },
+    });
   }
 
   async allByPagination({
@@ -37,6 +39,7 @@ export class UsersRepository {
       limit,
       offset,
       where,
+      attributes: { exclude: ['password'] },
     });
   }
 

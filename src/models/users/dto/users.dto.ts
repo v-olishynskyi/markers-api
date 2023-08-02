@@ -11,6 +11,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { UserSessionDto } from 'src/api/auth/dto/user-sessions.dto';
 import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
 
 export class UserDto {
@@ -62,3 +63,8 @@ export class CreateUserDto extends OmitType(UserDto, ['id'] as const) {}
 export class UpdateUserDto extends OmitType(PartialType(UserDto), [
   'id',
 ] as const) {}
+
+export class UserProfileDto extends UserDto {
+  @ApiProperty({ name: 'sessions', type: [UserSessionDto] })
+  sessions: UserSessionDto[];
+}

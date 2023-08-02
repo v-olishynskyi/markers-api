@@ -5,6 +5,7 @@ import { SignInDataDto, SignInResponseDto } from './dto/auth.dto';
 import { CreateUserDto, UserDto } from 'src/models/users/dto/users.dto';
 import { UsersService } from 'src/models/users/users.service';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
+import { ACCESS_TOKEN_EXPIRED_SEC } from 'src/common/constants';
 
 @Injectable()
 export class AuthService {
@@ -100,13 +101,13 @@ export class AuthService {
           email,
           userSessionId,
         },
-        { expiresIn: 60000 * 15 },
+        { expiresIn: ACCESS_TOKEN_EXPIRED_SEC },
       ),
       await this.jwtService.signAsync(
         {
           userSessionId,
         },
-        { expiresIn: '30d' },
+        { expiresIn: '7d' },
       ),
     ]);
 

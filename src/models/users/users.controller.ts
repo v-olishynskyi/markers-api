@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   HttpStatus,
   Param,
   ParseUUIDPipe,
@@ -21,10 +20,17 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateUserDto, UpdateUserDto, UserDto } from './dto/users.dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserDto,
+  UserProfileDto,
+} from './dto/users.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
 import { ApiPaginationResponse } from 'src/common/decorators/ApiPaginatedResponse.decorator';
 import { PaginationResponse } from 'src/common/helpers';
+import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
+import { QueryTypes } from 'sequelize';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -38,7 +44,7 @@ export class UsersController {
   @Get('/all')
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.usersService.getAll();
-    return users;
+    return users.map((user) => ({ ...user, password: '' }));
   }
 
   @ApiOperation({ summary: 'Get all users with paginations' })
@@ -61,13 +67,25 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get user profile' })
   @Get('/profile')
-  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
-  async getProfile(@Req() req: Request) {
+  @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
+  async getProfile(@Req() req: Request): Promise<UserProfileDto> {
     const userId = req['userId'];
 
-    const user = await this.usersService.getById(userId);
+    const userEntity = await this.usersService.getById(userId, {
+      include: [UserSession],
+      raw: false,
+      nest: true,
+    });
 
-    return user;
+    const user = userEntity.get({ plain: true });
+
+    const sessions = [...(user?.sessions || [])].map((session: UserSession) =>
+      session.get({ plain: true }),
+    );
+
+    const response = { ...user, sessions };
+
+    return response;
   }
 
   @ApiOperation({ summary: 'Get user', description: 'Get user by id' })
@@ -75,14 +93,15 @@ export class UsersController {
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string): Promise<UserDto> {
     const user = await this.usersService.getById(id);
-    return user;
+    return { ...user };
   }
 
   @ApiOperation({ summary: 'Create user' })
   @ApiResponse({ status: HttpStatus.CREATED, type: UserDto })
   @Post('/')
   async create(@Body() data: CreateUserDto): Promise<UserDto> {
-    return this.usersService.create(data);
+    const user = await this.usersService.create(data);
+    return { ...user };
   }
 
   @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
@@ -92,17 +111,14 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateUserDto,
   ): Promise<UserDto> {
-    return this.usersService.update(id, data);
+    const user = await this.usersService.update(id, data);
+    return { ...user };
   }
 
   @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })
   @ApiResponse({ status: HttpStatus.OK })
   @Delete('/:id')
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
-    try {
-      return this.usersService.delete(id);
-    } catch (error) {
-      throw new HttpException(error, HttpStatus.BAD_REQUEST);
-    }
+    return await this.usersService.delete(id);
   }
 }

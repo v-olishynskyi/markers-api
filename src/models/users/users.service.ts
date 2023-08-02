@@ -1,14 +1,20 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   UserDto,
   CreateUserDto,
   UpdateUserDto,
+  UserProfileDto,
 } from 'src/models/users/dto/users.dto';
 import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
-import { WhereOptions } from 'sequelize';
+import { FindOptions, WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
-import { PaginationResponse, wait } from 'src/common/helpers';
+import { PaginationResponse } from 'src/common/helpers';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class UsersService {
@@ -18,14 +24,27 @@ export class UsersService {
     return await this.usersRepository.all();
   }
 
-  async paginated({ limit, page }: PaginationParams) {
+  async paginated({ limit, page, search }: PaginationParams) {
     const _page = +page;
     const _limit = +limit;
     const offset = _page * _limit;
 
+    const where: WhereOptions<User> | undefined = !!search
+      ? {
+          [Op.or]: {
+            last_name: { [Op.iLike]: search },
+            first_name: { [Op.iLike]: search },
+            // middle_name: { [Op.notILike]: search },
+            // email: { [Op.notILike]: search },
+            // username: { [Op.notILike]: search },
+          },
+        }
+      : undefined;
+
     const { count, rows } = await this.usersRepository.allByPagination({
       limit: _limit,
       offset: offset,
+      where,
     });
 
     const last_page = Math.floor(count / _limit);
@@ -41,69 +60,69 @@ export class UsersService {
         total: count,
         next_page,
         prev_page,
+        search: search || null,
       },
     };
 
     return response;
   }
 
-  async findById(id: string): Promise<UserDto | null> {
+  async findById(
+    id: string,
+    options?: Omit<FindOptions<User>, 'where'>,
+  ): Promise<User | null> {
     const where: WhereOptions<User> = { id };
-    const user = await this.usersRepository.one(where);
+    const user = await this.usersRepository.one({ where, ...options });
 
     return user;
   }
 
-  async getById(id: string): Promise<UserDto> {
-    const where: WhereOptions<User> = { id };
-    const user = await this.usersRepository.one(where);
+  async getById(
+    id: string,
+    options?: Omit<FindOptions<User>, 'where'>,
+  ): Promise<User> {
+    const user = await this.usersRepository.one({ where: { id }, ...options });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('User not found');
     }
 
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDto | null> {
+  async findByEmail(email: string): Promise<User | null> {
     const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one(where);
+    const user = await this.usersRepository.one({ where });
 
     return user;
   }
 
-  async getByEmail(email: string): Promise<UserDto> {
+  async getByEmail(email: string): Promise<User> {
     const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one(where);
+    const user = await this.usersRepository.one({ where });
 
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('User not found');
     }
 
     return user;
   }
 
-  async create(data: CreateUserDto): Promise<UserDto> {
+  async create(data: CreateUserDto): Promise<User> {
     const user = await this.findByEmail(data.email);
 
     if (user) {
-      throw new HttpException(
-        'User with this email already exist',
-        HttpStatus.CONFLICT,
-      );
+      throw new ConflictException('User with this email already exist');
     }
 
     return await this.usersRepository.create(data);
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<UserDto> {
+  async update(id: string, data: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
 
     if (!user) {
-      throw new HttpException(
-        'User with this email not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new NotFoundException('User not found');
     }
 
     return await this.usersRepository.update(id, data);

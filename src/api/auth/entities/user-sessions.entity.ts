@@ -36,7 +36,7 @@ export class UserSession extends Model<UserSession> {
   @Column
   device: string;
 
-  @BelongsTo(() => User)
+  @BelongsTo(() => User, 'user_id')
   user: User;
 
   @CreatedAt
