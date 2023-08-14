@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpStatus,
   Param,
   ParseUUIDPipe,
@@ -68,24 +69,20 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user profile' })
   @Get('/profile')
   @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
-  async getProfile(@Req() req: Request): Promise<UserProfileDto> {
+  async getProfile(
+    @Req() req: Request,
+    @Headers('X-Device-Ip') ip: string,
+    @Headers('X-App-Version') app_version,
+  ): Promise<UserProfileDto> {
     const userId = req['userId'];
+    const userSessionId = req['userSessionId'];
 
-    const userEntity = await this.usersService.getById(userId, {
-      include: [UserSession],
-      raw: false,
-      nest: true,
-    });
-
-    const user = userEntity.get({ plain: true });
-
-    const sessions = [...(user?.sessions || [])].map((session: UserSession) =>
-      session.get({ plain: true }),
+    return await this.usersService.getProfile(
+      userId,
+      userSessionId,
+      app_version,
+      ip,
     );
-
-    const response = { ...user, sessions };
-
-    return response;
   }
 
   @ApiOperation({ summary: 'Get user', description: 'Get user by id' })

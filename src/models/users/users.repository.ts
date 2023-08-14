@@ -11,15 +11,13 @@ export class UsersRepository {
   ) {}
 
   async one(options: FindOptions<User>): Promise<User | null> {
-    return await this.userModel.findOne<User>({
-      attributes: { exclude: ['password'], ...options.attributes },
-      ...options,
-    });
+    return await this.userModel.findOne<User>({ raw: true, ...options });
   }
 
   async all(): Promise<User[]> {
     return await this.userModel.findAll({
       attributes: { exclude: ['password'] },
+      raw: true,
     });
   }
 

@@ -1,4 +1,12 @@
-import { Body, Controller, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -29,11 +37,11 @@ export class AuthController {
     @Body() signInData: SignInDataDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
+    @Headers('X-Device-Ip') ip: string,
+    @Headers('X-App-Version') app_version: string,
   ) {
-    const userAgent = req.headers['user-agent'];
-
     const { access_token, refresh_token, session_id, user } =
-      await this.authService.signIn(signInData, userAgent || '');
+      await this.authService.signIn(signInData, ip, app_version);
 
     const response: SignInResponseDto = {
       access_token,

@@ -6,26 +6,51 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private userSessionsRepository: UserSessionsRepository,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
     }
+    const payload = await this.jwtService.verifyAsync(token);
+
     try {
-      const payload = await this.jwtService.verifyAsync(token);
+      const userSession = await this.userSessionsRepository.one(
+        {
+          id: payload['userSessionId'],
+        },
+        {
+          attributes: {
+            exclude: ['user_id', 'device', 'created_at', 'updated_at', 'user'],
+          },
+        },
+      );
+
+      if (!userSession) {
+        throw new UnauthorizedException(
+          'Session terminated',
+          'session_terminated',
+        );
+      }
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       request['userId'] = payload['userId'];
+      request['userSessionId'] = payload['userSessionId'];
+
+      return true;
     } catch (error) {
       throw new UnauthorizedException('Expired token', 'expired_token');
     }
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

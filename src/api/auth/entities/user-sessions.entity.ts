@@ -10,6 +10,7 @@ import {
   Table,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { UserSessionDeviceDto } from 'src/api/auth/dto/user-sessions.dto';
 import { User } from 'src/models/users/entities/user.entity';
 import { v4 as uuid } from 'uuid';
 
@@ -33,11 +34,20 @@ export class UserSession extends Model<UserSession> {
   @Column
   user_id: string;
 
-  @Column
-  device: string;
-
   @BelongsTo(() => User, 'user_id')
   user: User;
+
+  @Column({ type: DataTypes.JSON, allowNull: true, defaultValue: null })
+  device: UserSessionDeviceDto | null;
+
+  @Column({ type: DataTypes.CIDR, allowNull: true, defaultValue: null })
+  ip: string | null;
+
+  @Column({ type: DataTypes.STRING, allowNull: true, defaultValue: null })
+  app_version: string | null;
+
+  @Column({ type: DataTypes.STRING, allowNull: true, defaultValue: null })
+  location: string | null;
 
   @CreatedAt
   @Column({ field: 'created_at' })

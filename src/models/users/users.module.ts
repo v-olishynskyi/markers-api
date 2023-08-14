@@ -4,11 +4,19 @@ import { UsersController } from './users.controller';
 import { usersProviders } from './users.providers';
 import { UsersRepository } from './users.repository';
 import { DatabaseModule } from 'src/providers/database/postgres/database.module';
+import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
+import { userSessionsProviders } from 'src/api/auth/user-sessions.provider';
 
 @Module({
   imports: [DatabaseModule],
-  providers: [UsersService, UsersRepository, ...usersProviders],
   controllers: [UsersController],
   exports: [UsersService],
+  providers: [
+    UsersService,
+    UsersRepository,
+    ...usersProviders,
+    UserSessionsRepository,
+    ...userSessionsProviders,
+  ],
 })
 export class UsersModule {}

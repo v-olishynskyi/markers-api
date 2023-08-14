@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length } from 'class-validator';
+import { UserSessionDeviceDto } from 'src/api/auth/dto/user-sessions.dto';
 import { UserDto } from 'src/models/users/dto/users.dto';
 
 export class SignInDataDto {
@@ -11,6 +12,9 @@ export class SignInDataDto {
   @IsString({ message: 'must be a string' })
   @Length(6, 16, { message: 'must be min 4 and max 16 symbols' })
   password: string;
+
+  @ApiProperty({ name: 'device', type: UserSessionDeviceDto })
+  device: UserSessionDeviceDto;
 }
 
 export class SignInResponseDto {

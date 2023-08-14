@@ -12,20 +12,26 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    private readonly userSessionsModel: UserSessionsRepository,
+    private readonly userSessionsRepository: UserSessionsRepository,
   ) {}
 
   async signIn(
     body: SignInDataDto,
-    userAgent: string,
+    ip: string | null,
+    app_version: string | null,
   ): Promise<SignInResponseDto> {
     const user = await this.usersService.getByEmail(body.email);
 
     await AuthService.verifyPassword(body.password, user.password);
 
-    const { id: userSessionId } = await this.userSessionsModel.create({
+    const location = '';
+
+    const { id: userSessionId } = await this.userSessionsRepository.create({
       user_id: user.id,
-      device: userAgent,
+      device: body.device,
+      ip,
+      app_version,
+      location,
     });
 
     const { accessToken, refreshToken } = await this.getTokens(
@@ -47,7 +53,11 @@ export class AuthService {
   }
 
   async logout(sessionId: string) {
-    return await this.userSessionsModel.delete(sessionId);
+    if (sessionId) {
+      return await this.userSessionsRepository.delete(sessionId);
+    } else {
+      return true;
+    }
   }
 
   async refreshAccessToken(refreshToken: string) {
@@ -59,7 +69,7 @@ export class AuthService {
 
     const userSessionId = decoded['userSessionId'];
 
-    const userSession = await this.userSessionsModel.one({
+    const userSession = await this.userSessionsRepository.one({
       id: userSessionId || '',
     });
 

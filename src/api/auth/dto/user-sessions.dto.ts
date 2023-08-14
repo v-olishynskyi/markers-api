@@ -1,5 +1,27 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { UserDto } from 'src/models/users/dto/users.dto';
+
+export enum Platforms {
+  IOS = 'iOS',
+  ANDROID = 'Android',
+  MACOS = ' acOS',
+  DESKTOP = 'Desktop',
+}
+
+export class UserSessionDeviceDto {
+  @ApiProperty({ name: 'id', example: 'ABCDEF12-34567890ABCDEF12' })
+  id: string;
+
+  @ApiProperty({ name: 'name', example: 'iPhone' })
+  name: string;
+
+  @ApiProperty({
+    name: 'platform',
+    example: 'iOS',
+    nullable: true,
+  })
+  platform: string;
+}
 
 export class UserSessionDto {
   @ApiProperty({ name: 'id', example: '5EC7BD8E-BA2B-1287-4909-4D18A4E5747D' })
@@ -16,13 +38,43 @@ export class UserSessionDto {
 
   @ApiProperty({
     name: 'device',
-    example:
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5.2 Safari/605.1.15',
+    example: {
+      id: 'ABCDEF12-34567890ABCDEF12',
+      name: 'iPhone',
+      platform: 'iOS',
+    } as UserSessionDeviceDto,
+    type: UserSessionDeviceDto,
+    nullable: true,
   })
-  device: string;
+  device: UserSessionDeviceDto | null;
+
+  @ApiProperty({ name: 'ip', type: String, nullable: true, default: null })
+  ip: string | null;
+
+  @ApiProperty({
+    name: 'app_version',
+    type: String,
+    nullable: true,
+    default: null,
+  })
+  app_version: string | null;
+
+  @ApiProperty({
+    name: 'location',
+    type: String,
+    nullable: true,
+    default: null,
+  })
+  location: string | null;
 }
 
 export class CreateUserSessionDto extends OmitType(UserSessionDto, [
   'id',
   'user',
+] as const) {}
+
+export class UpdateUserSessionDto extends OmitType(UserSessionDto, [
+  'id',
+  'user',
+  'user_id',
 ] as const) {}

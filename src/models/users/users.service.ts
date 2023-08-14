@@ -13,12 +13,18 @@ import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
 import { FindOptions, WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
-import { PaginationResponse } from 'src/common/helpers';
+import { PaginationResponse, getAddressFromIp } from 'src/common/helpers';
 import { Op } from 'sequelize';
+import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
+import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
+import { ipv4Regexp } from 'src/common/constants';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly userSessionsRepository: UserSessionsRepository,
+  ) {}
 
   async getAll(): Promise<UserDto[]> {
     return await this.usersRepository.all();
@@ -32,11 +38,11 @@ export class UsersService {
     const where: WhereOptions<User> | undefined = !!search
       ? {
           [Op.or]: {
-            last_name: { [Op.iLike]: search },
-            first_name: { [Op.iLike]: search },
-            // middle_name: { [Op.notILike]: search },
-            // email: { [Op.notILike]: search },
-            // username: { [Op.notILike]: search },
+            last_name: { [Op.iLike]: `%${search}` },
+            first_name: { [Op.iLike]: `%${search}` },
+            middle_name: { [Op.iLike]: `%${search}` },
+            email: { [Op.iLike]: `%${search}` },
+            username: { [Op.iLike]: `%${search}` },
           },
         }
       : undefined;
@@ -72,7 +78,11 @@ export class UsersService {
     options?: Omit<FindOptions<User>, 'where'>,
   ): Promise<User | null> {
     const where: WhereOptions<User> = { id };
-    const user = await this.usersRepository.one({ where, ...options });
+    const user = await this.usersRepository.one({
+      where,
+      attributes: { exclude: ['password'] },
+      ...options,
+    });
 
     return user;
   }
@@ -81,7 +91,12 @@ export class UsersService {
     id: string,
     options?: Omit<FindOptions<User>, 'where'>,
   ): Promise<User> {
-    const user = await this.usersRepository.one({ where: { id }, ...options });
+    const where: WhereOptions<User> = { id };
+    const user = await this.usersRepository.one({
+      where,
+      attributes: { exclude: ['password'] },
+      ...options,
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -90,22 +105,69 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(
+    email: string,
+    options?: Omit<FindOptions<User>, 'where'>,
+  ): Promise<User | null> {
     const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one({ where });
+    const user = await this.usersRepository.one({ where, ...options });
 
     return user;
   }
 
-  async getByEmail(email: string): Promise<User> {
+  async getByEmail(
+    email: string,
+    options?: Omit<FindOptions<User>, 'where'>,
+  ): Promise<User> {
     const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one({ where });
+    const user = await this.usersRepository.one({ where, ...options });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
     return user;
+  }
+
+  async getProfile(
+    userId: string,
+    userSessionId: string,
+    app_version: string,
+    ip: string,
+  ): Promise<UserProfileDto> {
+    const userEntity = await this.getById(userId, {
+      include: [UserSession],
+      raw: false,
+      nest: true,
+    });
+
+    const user = userEntity.get({ plain: true });
+
+    // let hasNewIp = false;
+    let hasNewAppVersion = false;
+
+    const sessions = user.sessions.map((session) => {
+      if (session.id !== userSessionId) {
+        return session;
+      } else {
+        // const isNewAndValidIp = session.ip !== ip && ipv4Regexp.test(ip);
+        // if (isNewAndValidIp) hasNewIp = true;
+        if (session.app_version !== app_version) hasNewAppVersion = true;
+
+        return {
+          ...session,
+          app_version,
+        };
+      }
+    });
+
+    if (hasNewAppVersion) {
+      this.userSessionsRepository.update(userSessionId, { app_version });
+    }
+
+    const response = { ...user, sessions };
+
+    return response;
   }
 
   async create(data: CreateUserDto): Promise<User> {
