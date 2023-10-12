@@ -71,8 +71,8 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
   async getProfile(
     @Req() req: Request,
-    @Headers('X-Device-Ip') ip: string,
-    @Headers('X-App-Version') app_version,
+    @Headers('X-Device-Ip') ip: string | null,
+    @Headers('X-App-Version') app_version: string | null,
   ): Promise<UserProfileDto> {
     const userId = req['userId'];
     const userSessionId = req['userSessionId'];

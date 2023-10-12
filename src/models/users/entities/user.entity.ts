@@ -4,6 +4,7 @@ import {
   CreatedAt,
   DataType,
   HasMany,
+  HasOne,
   IsEmail,
   Model,
   Table,
@@ -12,6 +13,7 @@ import {
 } from 'sequelize-typescript';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { heshPassword } from 'src/common/helpers';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 import { v4 as uuid } from 'uuid';
 
 @Table({
@@ -67,13 +69,15 @@ export class User extends Model<User> {
   })
   middle_name: string | null;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    unique: false,
-    defaultValue: null,
-  })
-  avatar_url: string | null;
+  // @Column({
+  //   type: DataType.STRING,
+  //   allowNull: true,
+  //   unique: false,
+  //   defaultValue: null,
+  // })
+  // avatar_url: string | null;
+  @HasOne(() => PublicFile, 'user_id')
+  avatar: PublicFile | null;
 
   @HasMany(() => UserSession, 'user_id')
   sessions: UserSession[];

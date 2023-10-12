@@ -3,6 +3,7 @@ import { FindOptions, WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
 import { USERS_REPOSITORY } from 'src/common/constants';
 import { CreateUserDto, UserDto } from './dto/users.dto';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -11,12 +12,18 @@ export class UsersRepository {
   ) {}
 
   async one(options: FindOptions<User>): Promise<User | null> {
-    return await this.userModel.findOne<User>({ raw: true, ...options });
+    return await this.userModel.findOne<User>({
+      raw: true,
+
+      ...options,
+    });
   }
 
   async all(): Promise<User[]> {
     return await this.userModel.findAll({
       attributes: { exclude: ['password'] },
+      include: PublicFile,
+      nest: true,
       raw: true,
     });
   }
@@ -38,6 +45,8 @@ export class UsersRepository {
       offset,
       where,
       attributes: { exclude: ['password'] },
+      include: PublicFile,
+      nest: true,
     });
   }
 
@@ -52,7 +61,7 @@ export class UsersRepository {
       where: { id },
       returning: true,
     });
-    return user;
+    return user.get({ plain: true });
   }
 
   async delete(id: string): Promise<boolean> {

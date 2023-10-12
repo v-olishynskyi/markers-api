@@ -13,6 +13,7 @@ import {
 } from 'class-validator';
 import { UserSessionDto } from 'src/api/auth/dto/user-sessions.dto';
 import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
+import { PublicFileDto } from 'src/models/files/dto/public-file.dto';
 
 export class UserDto {
   @ApiProperty({
@@ -55,8 +56,8 @@ export class UserDto {
       'https://cloudflare-ipfs.com/ipfs/Qmd3W5DuhgHirLHGVixi6V76LhCkZUz6pnFt5AJBiyvHye/avatar/292.jpg' ||
       null,
   })
-  @IsNullOrType('string', { message: 'must be a string' })
-  avatar_url: string | null;
+  @IsNullOrType('object')
+  avatar: PublicFileDto | null;
 }
 
 export class CreateUserDto extends OmitType(UserDto, ['id'] as const) {}

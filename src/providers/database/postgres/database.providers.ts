@@ -1,6 +1,7 @@
 import { Sequelize } from 'sequelize-typescript';
 import { User } from 'src/models/users/entities/user.entity';
 import { Marker } from 'src/models/markers/entities/marker.entity';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 import databaseConfig from 'src/configs/database/postgres';
 import { SEQUELIZE, DEV, PROD, TEST } from 'src/common/constants';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
@@ -27,7 +28,7 @@ export const databaseProviders = [
         ...config,
         timezone: '+00:00',
       });
-      sequelize.addModels([User, Marker, UserSession]);
+      sequelize.addModels([User, Marker, UserSession, PublicFile]);
       await sequelize.sync();
       return sequelize;
     },

@@ -37,17 +37,16 @@ export class AuthController {
     @Body() signInData: SignInDataDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Headers('X-Device-Ip') ip: string,
-    @Headers('X-App-Version') app_version: string,
+    @Headers('X-Device-Ip') ip: string | null,
+    @Headers('X-App-Version') app_version: string | null,
   ) {
-    const { access_token, refresh_token, session_id, user } =
+    const { access_token, refresh_token, session_id } =
       await this.authService.signIn(signInData, ip, app_version);
 
     const response: SignInResponseDto = {
       access_token,
       refresh_token,
       session_id,
-      user: { ...user, password: '' },
     };
 
     res.cookie('refresh_token', refresh_token, {});

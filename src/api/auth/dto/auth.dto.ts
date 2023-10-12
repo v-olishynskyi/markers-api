@@ -34,9 +34,6 @@ export class SignInResponseDto {
 
   @ApiProperty({ name: 'session_id' })
   session_id: string;
-
-  @ApiProperty({ name: 'user', type: UserDto })
-  user: UserDto;
 }
 
 export class RefreshTokenDto {

@@ -6,6 +6,7 @@ import { CreateUserDto, UserDto } from 'src/models/users/dto/users.dto';
 import { UsersService } from 'src/models/users/users.service';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { ACCESS_TOKEN_EXPIRED_SEC } from 'src/common/constants';
+import { User } from 'src/models/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +45,6 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
       session_id: userSessionId,
-      user,
     };
   }
 
@@ -69,9 +69,12 @@ export class AuthService {
 
     const userSessionId = decoded['userSessionId'];
 
-    const userSession = await this.userSessionsRepository.one({
-      id: userSessionId || '',
-    });
+    const userSession = await this.userSessionsRepository.one(
+      {
+        id: userSessionId || '',
+      },
+      { include: User },
+    );
 
     if (!userSession) {
       throw new UnauthorizedException('No user session found');

@@ -132,8 +132,8 @@ export class UsersService {
   async getProfile(
     userId: string,
     userSessionId: string,
-    app_version: string,
-    ip: string,
+    app_version: string | null,
+    ip: string | null,
   ): Promise<UserProfileDto> {
     const userEntity = await this.getById(userId, {
       include: [UserSession],

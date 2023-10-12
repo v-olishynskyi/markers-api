@@ -19,7 +19,6 @@ module.exports = {
       last_name: { type: Sequelize.STRING, allowNull: false, unique: false },
       username: { type: Sequelize.STRING, allowNull: true, unique: true },
       middle_name: { type: Sequelize.STRING, allowNull: false, unique: false },
-      avatar_url: { type: Sequelize.STRING, allowNull: true, unique: false },
       created_at: { type: Sequelize.DATE },
       updated_at: { type: Sequelize.DATE },
     });
