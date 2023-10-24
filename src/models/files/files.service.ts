@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3 } from 'aws-sdk';
+import {
+  FileBodyDto,
+  UpdateFileDto,
+} from 'src/models/files/dto/public-file.dto';
+import { FileTypeEnum } from 'src/models/files/enums';
 import { PublicFileRepository } from 'src/models/files/file.repository';
 import { v4 as uuid } from 'uuid';
 
@@ -11,7 +16,7 @@ export class FilesService {
     private readonly publicFileRepository: PublicFileRepository,
   ) {}
 
-  async uploadPublicFile(buffer: Buffer) {
+  async uploadPublicFile(buffer: Buffer, body: FileBodyDto) {
     const s3 = new S3();
 
     const key = `${uuid()}`;
@@ -21,14 +26,26 @@ export class FilesService {
         Bucket: this.configService.get('AWS_PUBLIC_BUCKET_NAME') as string,
         Key: key,
         Body: buffer,
+        ACL: 'public-read-write',
       })
       .promise();
+
+    const isMarkerImage = body.entity_type === FileTypeEnum.MARKER_IMAGE;
+
+    const entityData = isMarkerImage
+      ? { marker_id: body.entity_id, user_id: null }
+      : { user_id: body.entity_id, marker_id: null };
 
     const response = await this.publicFileRepository.create({
       key,
       url: uploadResult.Location,
+      ...entityData,
     });
 
     return response;
+  }
+
+  async updatePublicFile(id: string, data: UpdateFileDto) {
+    return await this.publicFileRepository.update(id, data);
   }
 }

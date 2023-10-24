@@ -26,6 +26,10 @@ import { v4 as uuid } from 'uuid';
   },
   underscored: false,
   timestamps: true,
+  defaultScope: {
+    nest: true,
+    include: PublicFile,
+  },
 })
 export class User extends Model<User> {
   @Column({
@@ -69,13 +73,6 @@ export class User extends Model<User> {
   })
   middle_name: string | null;
 
-  // @Column({
-  //   type: DataType.STRING,
-  //   allowNull: true,
-  //   unique: false,
-  //   defaultValue: null,
-  // })
-  // avatar_url: string | null;
   @HasOne(() => PublicFile, 'user_id')
   avatar: PublicFile | null;
 

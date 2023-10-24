@@ -6,6 +6,7 @@ import {
   UpdateMarkerDto,
 } from 'src/models/markers/dto/markers.dto';
 import { FindOptions } from 'sequelize';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 
 @Injectable()
 export class MarkersRepository {
@@ -14,21 +15,27 @@ export class MarkersRepository {
   ) {}
 
   async all(options?: FindOptions<Marker>): Promise<Marker[]> {
-    return await this.markerModel.findAll<Marker>({ raw: true, ...options });
+    return await this.markerModel.findAll<Marker>({
+      nest: true,
+      include: PublicFile,
+      ...options,
+    });
   }
 
   async one(options: FindOptions<Marker>): Promise<Marker | null> {
-    return await this.markerModel.findOne<Marker>({ raw: true, ...options });
+    return await this.markerModel.findOne<Marker>({
+      nest: true,
+      include: PublicFile,
+      ...options,
+    });
   }
 
   async create(createMarkerDto: CreateMarkerDto): Promise<Marker> {
-    // eslint-disable-next-line
-    // @ts-ignore
     return await this.markerModel.create({
       ...createMarkerDto,
       latitude: +createMarkerDto.latitude,
       longitude: +createMarkerDto.longitude,
-    });
+    } as unknown as Marker);
   }
 
   async update(id: string, updateMarkerDto: Partial<UpdateMarkerDto>) {
@@ -39,7 +46,7 @@ export class MarkersRepository {
         returning: true,
       },
     );
-    return marker.get({ plain: true });
+    return marker?.get({ plain: true });
   }
 
   async delete(id: string) {

@@ -17,7 +17,7 @@ import { PublicFileDto } from 'src/models/files/dto/public-file.dto';
 
 export class UserDto {
   @ApiProperty({
-    example: '5EC7BD8E-BA2B-1287-4909-4D18A4E5747D',
+    example: '5ec7bd8e-ba2b-1287-4909-4d18a4e5747d',
     description: 'Unique user id',
   })
   @IsUUID()
@@ -60,9 +60,13 @@ export class UserDto {
   avatar: PublicFileDto | null;
 }
 
-export class CreateUserDto extends OmitType(UserDto, ['id'] as const) {}
+export class CreateUserDto extends OmitType(UserDto, [
+  'id',
+  'avatar',
+] as const) {}
 export class UpdateUserDto extends OmitType(PartialType(UserDto), [
   'id',
+  'avatar',
 ] as const) {}
 
 export class UserProfileDto extends UserDto {

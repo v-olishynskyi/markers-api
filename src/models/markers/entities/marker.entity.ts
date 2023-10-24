@@ -53,7 +53,19 @@ export class Marker extends Model<Marker> {
   })
   longitude: number;
 
-  @HasMany(() => PublicFile, 'id')
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_draft: boolean;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+  })
+  is_hidden: boolean;
+
+  @HasMany(() => PublicFile, 'marker_id')
   images: PublicFile[];
 
   @CreatedAt

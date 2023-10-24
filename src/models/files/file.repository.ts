@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PUBLIC_FILE_REPOSITORY } from 'src/common/constants';
-import { CreateFileDto } from 'src/models/files/dto/public-file.dto';
+import {
+  CreateFileDto,
+  UpdateFileDto,
+} from 'src/models/files/dto/public-file.dto';
 import { FindOptions } from 'sequelize';
 import { PublicFile } from 'src/models/files/entities/file.entity';
 
@@ -19,16 +22,24 @@ export class PublicFileRepository {
   }
 
   async create(createFileDto: CreateFileDto): Promise<PublicFile> {
-    // eslint-disable-next-line
-    // @ts-ignore
-    return await this.publicFileModel.create({
-      ...createFileDto,
-    });
+    return await this.publicFileModel.create(createFileDto as PublicFile);
   }
 
   async delete(id: string) {
     return Boolean(
       await this.publicFileModel.destroy<PublicFile>({ where: { id } }),
     );
+  }
+
+  async update(id: string, data: UpdateFileDto) {
+    const [, [file]] = await this.publicFileModel.update<PublicFile>(
+      data as PublicFile,
+      {
+        where: { id },
+        returning: true,
+      },
+    );
+
+    return file;
   }
 }

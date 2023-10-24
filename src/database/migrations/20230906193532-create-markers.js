@@ -17,6 +17,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      is_draft: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      is_hidden: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
       images: {
         type: Sequelize.ARRAY(Sequelize.STRING),
       },

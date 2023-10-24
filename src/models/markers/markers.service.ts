@@ -3,13 +3,25 @@ import { MarkersRepository } from './markers.repository';
 import { CreateMarkerDto } from 'src/models/markers/dto/markers.dto';
 import { FindOptions, WhereOptions } from 'sequelize';
 import { Marker } from 'src/models/markers/entities/marker.entity';
+import { FilesService } from 'src/models/files/files.service';
 
 @Injectable()
 export class MarkersService {
-  constructor(private readonly markersRepository: MarkersRepository) {}
+  constructor(
+    private readonly markersRepository: MarkersRepository,
+    private readonly publicFileService: FilesService,
+  ) {}
 
   async getAllMarkers() {
-    return this.markersRepository.all();
+    const markers = await this.markersRepository.all();
+
+    const markersData = markers.map((markerEntity) => {
+      const marker = markerEntity.get({ plain: true });
+
+      return marker;
+    });
+
+    return markersData;
   }
 
   async findById(
@@ -43,11 +55,25 @@ export class MarkersService {
   }
 
   async createMarker(dto: CreateMarkerDto) {
-    return await this.markersRepository.create({
+    const images = dto?.images;
+
+    const createdMarker = await this.markersRepository.create({
       ...dto,
-      images: dto.images.map(({ id }) => id),
       latitude: +dto.latitude,
       longitude: +dto.longitude,
     });
+
+    const updateFilesPromises = images?.map(
+      async (id) =>
+        await this.publicFileService.updatePublicFile(id, {
+          marker_id: createdMarker.id,
+        }),
+    );
+
+    updateFilesPromises && (await Promise.all(updateFilesPromises));
+
+    const marker = await this.getById(createdMarker.id);
+
+    return marker;
   }
 }

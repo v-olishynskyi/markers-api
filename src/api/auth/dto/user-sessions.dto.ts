@@ -24,12 +24,12 @@ export class UserSessionDeviceDto {
 }
 
 export class UserSessionDto {
-  @ApiProperty({ name: 'id', example: '5EC7BD8E-BA2B-1287-4909-4D18A4E5747D' })
+  @ApiProperty({ name: 'id', example: '5ec7bd8e-ba2b-1287-4909-4d18a4e5747d' })
   id: string;
 
   @ApiProperty({
     name: 'user_id',
-    example: '5EC7BD8E-BA2B-1287-4909-4D18A4E5747D',
+    example: '5ec7bd8e-ba2b-1287-4909-4d18a4e5747d',
   })
   user_id: string;
 

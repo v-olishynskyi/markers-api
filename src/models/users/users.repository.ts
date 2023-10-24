@@ -14,7 +14,7 @@ export class UsersRepository {
   async one(options: FindOptions<User>): Promise<User | null> {
     return await this.userModel.findOne<User>({
       raw: true,
-
+      include: PublicFile,
       ...options,
     });
   }
@@ -41,26 +41,24 @@ export class UsersRepository {
     count: number;
   }> {
     return await this.userModel.findAndCountAll<User>({
+      include: PublicFile,
       limit,
       offset,
       where,
       attributes: { exclude: ['password'] },
-      include: PublicFile,
-      nest: true,
     });
   }
 
-  async create(user: CreateUserDto): Promise<User> {
-    // eslint-disable-next-line
-    // @ts-ignore
-    return await this.userModel.create<User>(user);
+  async create(user: CreateUserDto) {
+    return await this.userModel.create<User>(user as User);
   }
 
   async update(id: string, data: Partial<UserDto>) {
-    const [, [user]] = await this.userModel.update<User>(data, {
+    const [, [user]] = await this.userModel.update<User>(data as User, {
       where: { id },
       returning: true,
     });
+
     return user.get({ plain: true });
   }
 

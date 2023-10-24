@@ -4,7 +4,7 @@ import { PublicFileDto } from 'src/models/files/dto/public-file.dto';
 
 export class MarkerDto {
   @ApiProperty({
-    example: '5EC7BD8E-BA2B-1287-4909-4D18A4E5747D',
+    example: '5ec7bd8e-ba2b-1287-4909-4d18a4e5747d',
     description: 'Unique marker id',
   })
   @IsUUID()
@@ -24,6 +24,22 @@ export class MarkerDto {
   longitude: number;
 
   @ApiProperty({
+    name: 'is_draft',
+    description: 'Indicates that marker is draft. ',
+    default: false,
+    type: Boolean,
+  })
+  is_draft: boolean;
+
+  @ApiProperty({
+    name: 'is_hidden',
+    description: 'Indicates that marker is hidden. ',
+    default: false,
+    type: Boolean,
+  })
+  is_hidden: boolean;
+
+  @ApiProperty({
     name: 'images',
     description: 'Marker images',
     type: [PublicFileDto],
@@ -40,19 +56,12 @@ export class CreateMarkerDto extends OmitType(MarkerDto, [
 ] as const) {
   @ApiProperty({
     name: 'images',
-    description: 'Marker images',
-    type: String,
+    description: 'Marker images ids',
+    type: [String],
   })
   images: string[];
 }
 export class UpdateMarkerDto extends OmitType(MarkerDto, [
   'id',
   'images',
-] as const) {
-  @ApiProperty({
-    name: 'images',
-    description: 'Marker images',
-    type: String,
-  })
-  images: string[];
-}
+] as const) {}

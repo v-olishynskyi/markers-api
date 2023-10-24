@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   HttpException,
   Post,
@@ -6,12 +7,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { randomUUID } from 'crypto';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { FilesService } from './files.service';
-
+import { FileBodyDto } from './dto/public-file.dto';
+@ApiTags('Files')
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -30,17 +29,18 @@ export class FilesController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile('file') file: Express.Multer.File) {
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: FileBodyDto,
+  ) {
     try {
-      const response = await this.filesService.uploadPublicFile(file.buffer);
+      const response = await this.filesService.uploadPublicFile(
+        file.buffer,
+        body,
+      );
       const plain = response.get({ plain: true });
-
       return plain;
     } catch (error) {
-      console.log(
-        'file: files.controller.ts:44 - FilesController - uploadFile - error:',
-        error,
-      );
       throw new HttpException('Error when upload file', 500);
     }
   }

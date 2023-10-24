@@ -8,3 +8,7 @@ export const heshPassword = async (password: string) =>
 
 export const wait = (ms: number) =>
   new Promise((resolve) => setTimeout(() => resolve(true), ms));
+
+export const getRandomInRange = (from, to, fixed) => {
+  return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+};

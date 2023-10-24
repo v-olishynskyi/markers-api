@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { config } from 'aws-sdk';
 import { writeFile } from 'fs';
 import { faker } from '@faker-js/faker';
+import { getRandomInRange } from 'src/common/helpers';
+import usersJson from './database/seed.data/users.json';
 
 declare const module: any;
 
@@ -43,10 +45,34 @@ const generateFakes = async () => {
     };
   }
 
-  const users = faker.helpers.multiple(createRandomUser, {
-    count: 200,
+  function createRandomMarker() {
+    const date = faker.date
+      .soon({
+        days: 10,
+        refDate: new Date().toISOString(),
+      })
+      .toISOString();
+
+    const latitude = getRandomInRange(50, 51, 6);
+    const longitude = getRandomInRange(30, 31, 6);
+
+    return {
+      id: faker.string.uuid(),
+      name: faker.commerce.productName(),
+      description: faker.commerce.productDescription(),
+      latitude,
+      longitude,
+      user_id: usersJson[getRandomInRange(0, usersJson.length - 1, 0)].id,
+      created_at: date,
+      updated_at: date,
+    };
+  }
+
+  const markers = faker.helpers.multiple(createRandomMarker, {
+    count: 20,
   });
-  await writeFile('./users.json', JSON.stringify(users), () => {
+
+  await writeFile('./markers.json', JSON.stringify(markers), () => {
     return;
   });
 
@@ -54,16 +80,18 @@ const generateFakes = async () => {
   // await writeFile('./avatars.json', JSON.stringify(avatars), () => {
   //   return;
   // });
-  const avatars = users.map((user) => {
+
+  const markersAvatars = markers.map((user) => {
     const avatarId = faker.string.uuid();
     return {
       id: avatarId,
-      user_id: user.id,
+      user_id: null,
+      marker_id: user.id,
       key: null,
       url: faker.internet.avatar(),
     };
   });
-  await writeFile('./avatars.json', JSON.stringify(avatars), () => {
+  await writeFile('./avatars.json', JSON.stringify(markersAvatars), () => {
     return;
   });
 };

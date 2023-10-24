@@ -13,11 +13,11 @@ import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
 import { FindOptions, WhereOptions } from 'sequelize';
 import { User } from './entities/user.entity';
-import { PaginationResponse, getAddressFromIp } from 'src/common/helpers';
+import { PaginationResponse } from 'src/common/helpers';
 import { Op } from 'sequelize';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
-import { ipv4Regexp } from 'src/common/constants';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 
 @Injectable()
 export class UsersService {
@@ -136,7 +136,7 @@ export class UsersService {
     ip: string | null,
   ): Promise<UserProfileDto> {
     const userEntity = await this.getById(userId, {
-      include: [UserSession],
+      include: [UserSession, PublicFile],
       raw: false,
       nest: true,
     });
