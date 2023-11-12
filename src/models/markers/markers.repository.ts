@@ -15,14 +15,16 @@ export class MarkersRepository {
   ) {}
 
   async all(options?: FindOptions<Marker>): Promise<Marker[]> {
-    return await this.markerModel.findAll<Marker>({
-      nest: true,
-      include: PublicFile,
-      ...options,
-    });
+    return (
+      (await this.markerModel.findAll<Marker>({
+        nest: true,
+        include: PublicFile,
+        ...options,
+      })) ?? []
+    );
   }
 
-  async one(options: FindOptions<Marker>): Promise<Marker | null> {
+  async one(options?: FindOptions<Marker>): Promise<Marker | null> {
     return await this.markerModel.findOne<Marker>({
       nest: true,
       include: PublicFile,
@@ -38,18 +40,21 @@ export class MarkersRepository {
     } as unknown as Marker);
   }
 
-  async update(id: string, updateMarkerDto: Partial<UpdateMarkerDto>) {
-    const [, [marker]] = await this.markerModel.update<Marker>(
-      updateMarkerDto,
-      {
-        where: { id },
-        returning: true,
-      },
-    );
+  async update(id: string, data: Partial<UpdateMarkerDto>) {
+    const [, [marker]] = await this.markerModel.update<Marker>(data, {
+      where: { id },
+      returning: true,
+    });
     return marker?.get({ plain: true });
   }
 
   async delete(id: string) {
-    return Boolean(await this.markerModel.destroy<Marker>({ where: { id } }));
+    return Boolean(
+      await this.markerModel.destroy<Marker>({
+        where: { id },
+        cascade: true,
+        individualHooks: true,
+      }),
+    );
   }
 }

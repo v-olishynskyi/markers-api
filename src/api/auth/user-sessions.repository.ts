@@ -6,7 +6,6 @@ import {
 } from 'src/api/auth/dto/user-sessions.dto';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { USER_SESSIONS_REPOSITORY } from 'src/common/constants';
-import { User } from 'src/models/users/entities/user.entity';
 
 @Injectable()
 export class UserSessionsRepository {
@@ -23,13 +22,7 @@ export class UserSessionsRepository {
   }
 
   async create(data: CreateUserSessionDto) {
-    // eslint-disable-next-line
-    // @ts-ignore
-    return this.userSessionsModel.create(data);
-  }
-
-  async delete(id: string) {
-    return Boolean(await this.userSessionsModel.destroy({ where: { id } }));
+    return this.userSessionsModel.create(data as UserSession);
   }
 
   async update(
@@ -43,5 +36,9 @@ export class UserSessionsRepository {
       where: { id },
       ...options,
     });
+  }
+
+  async delete(id: string) {
+    return Boolean(await this.userSessionsModel.destroy({ where: { id } }));
   }
 }

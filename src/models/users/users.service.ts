@@ -190,7 +190,7 @@ export class UsersService {
     return await this.usersRepository.update(id, data);
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string) {
     return await this.usersRepository.delete(id);
   }
 }

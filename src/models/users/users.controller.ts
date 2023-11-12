@@ -67,8 +67,8 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get user profile' })
-  @Get('/profile')
   @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
+  @Get('/profile')
   async getProfile(
     @Req() req: Request,
     @Headers('X-Device-Ip') ip: string | null,
@@ -96,15 +96,15 @@ export class UsersController {
   @ApiOperation({ summary: 'Create user' })
   @ApiResponse({ status: HttpStatus.CREATED, type: UserDto })
   @Post('/')
-  async create(@Body() data: CreateUserDto): Promise<UserDto> {
+  async createUser(@Body() data: CreateUserDto): Promise<UserDto> {
     const user = await this.usersService.create(data);
     return { ...user };
   }
 
   @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
-  @Put('/:id')
   @ApiResponse({ status: HttpStatus.OK, type: UserDto })
-  async update(
+  @Put('/:id')
+  async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateUserDto,
   ): Promise<UserDto> {
@@ -115,7 +115,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })
   @ApiResponse({ status: HttpStatus.OK })
   @Delete('/:id')
-  async delete(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
     return await this.usersService.delete(id);
   }
 }

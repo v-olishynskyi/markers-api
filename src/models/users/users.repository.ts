@@ -11,7 +11,7 @@ export class UsersRepository {
     @Inject(USERS_REPOSITORY) private readonly userModel: typeof User,
   ) {}
 
-  async one(options: FindOptions<User>): Promise<User | null> {
+  async one(options?: FindOptions<User>): Promise<User | null> {
     return await this.userModel.findOne<User>({
       raw: true,
       include: PublicFile,
@@ -19,12 +19,13 @@ export class UsersRepository {
     });
   }
 
-  async all(): Promise<User[]> {
+  async all(options?: FindOptions<User>): Promise<User[]> {
     return await this.userModel.findAll({
       attributes: { exclude: ['password'] },
       include: PublicFile,
       nest: true,
       raw: true,
+      ...options,
     });
   }
 
@@ -49,8 +50,8 @@ export class UsersRepository {
     });
   }
 
-  async create(user: CreateUserDto) {
-    return await this.userModel.create<User>(user as User);
+  async create(createUserDto: CreateUserDto) {
+    return await this.userModel.create<User>(createUserDto as User);
   }
 
   async update(id: string, data: Partial<UserDto>) {
@@ -62,7 +63,7 @@ export class UsersRepository {
     return user.get({ plain: true });
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: string) {
     return Boolean(await this.userModel.destroy<User>({ where: { id } }));
   }
 }

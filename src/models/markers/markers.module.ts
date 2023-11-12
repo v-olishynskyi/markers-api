@@ -7,8 +7,8 @@ import { MarkersRepository } from 'src/models/markers/markers.repository';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { userSessionsProviders } from 'src/api/auth/user-sessions.provider';
 import { FilesService } from 'src/models/files/files.service';
-import { PublicFileRepository } from 'src/models/files/file.repository';
-import { publicFileProviders } from 'src/models/files/file.providers';
+import { PublicFileRepository } from 'src/models/files/files.repository';
+import { publicFileProviders } from 'src/models/files/files.providers';
 
 @Module({
   imports: [DatabaseModule],

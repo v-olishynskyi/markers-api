@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
-import { CreateMarkerDto } from 'src/models/markers/dto/markers.dto';
+import {
+  CreateMarkerDto,
+  UpdateMarkerDto,
+} from 'src/models/markers/dto/markers.dto';
 import { FindOptions, WhereOptions } from 'sequelize';
 import { Marker } from 'src/models/markers/entities/marker.entity';
 import { FilesService } from 'src/models/files/files.service';
@@ -11,18 +14,6 @@ export class MarkersService {
     private readonly markersRepository: MarkersRepository,
     private readonly publicFileService: FilesService,
   ) {}
-
-  async getAllMarkers() {
-    const markers = await this.markersRepository.all();
-
-    const markersData = markers.map((markerEntity) => {
-      const marker = markerEntity.get({ plain: true });
-
-      return marker;
-    });
-
-    return markersData;
-  }
 
   async findById(
     id: string,
@@ -54,18 +45,30 @@ export class MarkersService {
     return marker;
   }
 
-  async createMarker(dto: CreateMarkerDto) {
-    const images = dto?.images;
+  async getAllMarkers() {
+    const markers = await this.markersRepository.all();
+
+    const markersData = markers.map((markerEntity) => {
+      const marker = markerEntity.get({ plain: true });
+
+      return marker;
+    });
+
+    return markersData;
+  }
+
+  async create(data: CreateMarkerDto): Promise<Marker> {
+    const images = data?.images;
 
     const createdMarker = await this.markersRepository.create({
-      ...dto,
-      latitude: +dto.latitude,
-      longitude: +dto.longitude,
+      ...data,
+      latitude: +data.latitude,
+      longitude: +data.longitude,
     });
 
     const updateFilesPromises = images?.map(
       async (id) =>
-        await this.publicFileService.updatePublicFile(id, {
+        await this.publicFileService.update(id, {
           marker_id: createdMarker.id,
         }),
     );
@@ -75,5 +78,14 @@ export class MarkersService {
     const marker = await this.getById(createdMarker.id);
 
     return marker;
+  }
+
+  async update(id: string, data: UpdateMarkerDto) {
+    const sourceMarkerInstance = await this.getById(id);
+    const sourceMarker = sourceMarkerInstance.get({ plain: true });
+  }
+
+  async delete(id: string) {
+    return await this.markersRepository.delete(id);
   }
 }

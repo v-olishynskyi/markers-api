@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3 } from 'aws-sdk';
+import { FindOptions, WhereOptions } from 'sequelize';
 import {
   FileBodyDto,
+  PublicFileDto,
   UpdateFileDto,
 } from 'src/models/files/dto/public-file.dto';
+import { PublicFile } from 'src/models/files/entities/file.entity';
 import { FileTypeEnum } from 'src/models/files/enums';
-import { PublicFileRepository } from 'src/models/files/file.repository';
+import { PublicFileRepository } from 'src/models/files/files.repository';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
@@ -16,7 +19,37 @@ export class FilesService {
     private readonly publicFileRepository: PublicFileRepository,
   ) {}
 
-  async uploadPublicFile(buffer: Buffer, body: FileBodyDto) {
+  async findById(
+    id: string,
+    options?: Omit<FindOptions<PublicFile>, 'where'>,
+  ): Promise<PublicFile | null> {
+    const where: WhereOptions<PublicFile> = { id };
+    const publicFile = await this.publicFileRepository.one({
+      where,
+      ...options,
+    });
+
+    return publicFile;
+  }
+
+  async getById(
+    id: string,
+    options?: Omit<FindOptions<PublicFile>, 'where'>,
+  ): Promise<PublicFile> {
+    const where: WhereOptions<PublicFile> = { id };
+    const publicFile = await this.publicFileRepository.one({
+      where,
+      ...options,
+    });
+
+    if (!publicFile) {
+      throw new NotFoundException('Public file not found');
+    }
+
+    return publicFile;
+  }
+
+  async create(buffer: Buffer, body: FileBodyDto) {
     const s3 = new S3();
 
     const key = `${uuid()}`;
@@ -45,7 +78,15 @@ export class FilesService {
     return response;
   }
 
-  async updatePublicFile(id: string, data: UpdateFileDto) {
+  async update(id: string, data: UpdateFileDto) {
     return await this.publicFileRepository.update(id, data);
+  }
+
+  async delete(id: string) {
+    const s3 = new S3();
+
+    const file = (await this.getById(id)).get({ plain: true });
+
+    await this.publicFileRepository.delete(id);
   }
 }

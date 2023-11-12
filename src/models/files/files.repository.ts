@@ -14,7 +14,16 @@ export class PublicFileRepository {
     private readonly publicFileModel: typeof PublicFile,
   ) {}
 
-  async one(options: FindOptions<PublicFile>): Promise<PublicFile | null> {
+  async all(options?: FindOptions<PublicFile>): Promise<PublicFile[]> {
+    return (
+      (await this.publicFileModel.findAll<PublicFile>({
+        raw: true,
+        ...options,
+      })) ?? []
+    );
+  }
+
+  async one(options?: FindOptions<PublicFile>): Promise<PublicFile | null> {
     return await this.publicFileModel.findOne<PublicFile>({
       raw: true,
       ...options,
@@ -23,12 +32,6 @@ export class PublicFileRepository {
 
   async create(createFileDto: CreateFileDto): Promise<PublicFile> {
     return await this.publicFileModel.create(createFileDto as PublicFile);
-  }
-
-  async delete(id: string) {
-    return Boolean(
-      await this.publicFileModel.destroy<PublicFile>({ where: { id } }),
-    );
   }
 
   async update(id: string, data: UpdateFileDto) {
@@ -41,5 +44,11 @@ export class PublicFileRepository {
     );
 
     return file;
+  }
+
+  async delete(id: string) {
+    return Boolean(
+      await this.publicFileModel.destroy<PublicFile>({ where: { id } }),
+    );
   }
 }
