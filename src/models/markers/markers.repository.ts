@@ -41,10 +41,13 @@ export class MarkersRepository {
   }
 
   async update(id: string, data: Partial<UpdateMarkerDto>) {
-    const [, [marker]] = await this.markerModel.update<Marker>(data, {
-      where: { id },
-      returning: true,
-    });
+    const [, [marker]] = await this.markerModel.update<Marker>(
+      data as unknown as Marker,
+      {
+        where: { id },
+        returning: true,
+      },
+    );
     return marker?.get({ plain: true });
   }
 

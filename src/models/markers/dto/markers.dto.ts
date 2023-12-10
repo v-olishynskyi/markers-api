@@ -61,7 +61,11 @@ export class CreateMarkerDto extends OmitType(MarkerDto, [
   })
   images: string[];
 }
-export class UpdateMarkerDto extends OmitType(MarkerDto, [
-  'id',
-  'images',
-] as const) {}
+export class UpdateMarkerDto extends OmitType(MarkerDto, ['images'] as const) {
+  @ApiProperty({
+    name: 'images',
+    description: 'Marker images ids',
+    type: [String],
+  })
+  images: string[];
+}

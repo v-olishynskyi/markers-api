@@ -83,6 +83,42 @@ export class MarkersService {
   async update(id: string, data: UpdateMarkerDto) {
     const sourceMarkerInstance = await this.getById(id);
     const sourceMarker = sourceMarkerInstance.get({ plain: true });
+
+    const sourceMarkerImagesIds = sourceMarker.images.map(({ id }) => id);
+    const updatingMarkerImagesIds = data.images;
+
+    const updatedMarker = await this.markersRepository.update(id, data);
+
+    // check if user add new image to marker
+    const newImages = updatingMarkerImagesIds.filter(
+      (el) => !sourceMarkerImagesIds.includes(el),
+    );
+
+    if (newImages.length) {
+      // link new images with updated marker
+      await Promise.all(
+        newImages.map(
+          async (imgId) =>
+            await this.publicFileService.update(imgId, { marker_id: id }),
+        ),
+      );
+    }
+
+    // check if user remove images from marker
+    const deletedImages = sourceMarkerImagesIds.filter(
+      (el) => !updatingMarkerImagesIds.includes(el),
+    );
+
+    if (deletedImages.length) {
+      // delete unsued image from db
+      await Promise.all(
+        deletedImages.map(
+          async (imgId) => await this.publicFileService.delete(imgId),
+        ),
+      );
+    }
+
+    return updatedMarker;
   }
 
   async delete(id: string) {
