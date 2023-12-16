@@ -76,7 +76,7 @@ export class AuthService {
       { include: User },
     );
 
-    if (!userSession) {
+    if (!userSession || !userSession?.user) {
       throw new UnauthorizedException('No user session found');
     }
 

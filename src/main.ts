@@ -68,30 +68,83 @@ const generateFakes = async () => {
     };
   }
 
-  const markers = faker.helpers.multiple(createRandomMarker, {
-    count: 20,
-  });
+  function createRandomGroup() {
+    const date = faker.date
+      .soon({
+        days: 10,
+        refDate: new Date().toISOString(),
+      })
+      .toISOString();
 
-  await writeFile('./markers.json', JSON.stringify(markers), () => {
-    return;
-  });
+    return {
+      id: faker.string.uuid(),
+      name: faker.commerce.department(),
+      created_at: date,
+      updated_at: date,
+    };
+  }
+
+  // const users = faker.helpers.multiple(createRandomUser, {
+  //   count: 100,
+  // });
+  // await writeFile('./users.json', JSON.stringify(users), () => {
+  //   return;
+  // });
+
+  // const markers = faker.helpers.multiple(createRandomMarker, {
+  //   count: 20,
+  // });
+  // await writeFile('./markers.json', JSON.stringify(markers), () => {
+  //   return;
+  // });
+
+  // const groups = faker.helpers.multiple(createRandomGroup, {
+  //   count: 10,
+  // });
+  // await writeFile('./groups.json', JSON.stringify(groups), () => {
+  //   return;
+  // });
 
   // const avatars = users.map((user) => ({ ...user.avatar }));
   // await writeFile('./avatars.json', JSON.stringify(avatars), () => {
   //   return;
   // });
 
-  const markersAvatars = markers.map((user) => {
-    const avatarId = faker.string.uuid();
+  // const markersAvatars = markers.map((user) => {
+  //   const avatarId = faker.string.uuid();
+  //   return {
+  //     id: avatarId,
+  //     user_id: null,
+  //     marker_id: user.id,
+  //     key: null,
+  //     url: faker.internet.avatar(),
+  //   };
+  // });
+  // await writeFile('./avatars.json', JSON.stringify(markersAvatars), () => {
+  //   return;
+  // });
+
+  function createRandomGroupUser() {
+    const date = faker.date
+      .soon({
+        days: 10,
+        refDate: new Date().toISOString(),
+      })
+      .toISOString();
+
     return {
-      id: avatarId,
-      user_id: null,
-      marker_id: user.id,
-      key: null,
-      url: faker.internet.avatar(),
+      id: faker.string.uuid(),
+      user_id: '',
+      group_id: '',
+      created_at: date,
+      updated_at: date,
     };
+  }
+
+  const group_users = faker.helpers.multiple(createRandomGroupUser, {
+    count: 10,
   });
-  await writeFile('./avatars.json', JSON.stringify(markersAvatars), () => {
+  await writeFile('./group_users.json', JSON.stringify(group_users), () => {
     return;
   });
 };
@@ -120,4 +173,4 @@ async function bootstrap() {
   }
 }
 bootstrap();
-// generateFakes();
+generateFakes();

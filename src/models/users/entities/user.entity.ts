@@ -14,6 +14,8 @@ import {
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { heshPassword } from 'src/common/helpers';
 import { PublicFile } from 'src/models/files/entities/file.entity';
+import { GroupUsers } from 'src/models/groups/entities/group-users.entity';
+import { Group } from 'src/models/groups/entities/group.entity';
 import { v4 as uuid } from 'uuid';
 
 @Table({
@@ -40,10 +42,10 @@ export class User extends Model<User> {
 
   @IsEmail
   @Unique
-  @Column
+  @Column(DataType.STRING)
   email: string;
 
-  @Column
+  @Column(DataType.STRING)
   password: string;
 
   @Column({
@@ -78,6 +80,12 @@ export class User extends Model<User> {
 
   @HasMany(() => UserSession, 'user_id')
   sessions: UserSession[];
+
+  @BelongsToMany(() => Group, () => GroupUsers)
+  groups: Group[];
+
+  // @HasMany(() => PublicFile, 'user_id')
+  // files: PublicFile[];
 
   @CreatedAt
   @Column({ field: 'created_at' })

@@ -14,6 +14,7 @@ import {
 import { UserSessionDto } from 'src/api/auth/dto/user-sessions.dto';
 import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
 import { PublicFileDto } from 'src/models/files/dto/public-file.dto';
+import { GroupDto } from 'src/models/groups/dto/groups.dto';
 
 export class UserDto {
   @ApiProperty({
@@ -72,4 +73,7 @@ export class UpdateUserDto extends OmitType(PartialType(UserDto), [
 export class UserProfileDto extends UserDto {
   @ApiProperty({ name: 'sessions', type: [UserSessionDto] })
   sessions: UserSessionDto[];
+
+  @ApiProperty({ name: 'groups', type: [GroupDto] })
+  groups: GroupDto[];
 }

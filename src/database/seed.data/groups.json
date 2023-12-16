@@ -1,0 +1,62 @@
+[
+  {
+    "id": "e5d60aa1-8bf6-4dae-8f38-4bb387cf0ed4",
+    "name": "Beauty",
+    "created_at": "2023-12-22T00:43:11.620Z",
+    "updated_at": "2023-12-22T00:43:11.620Z"
+  },
+  {
+    "id": "1549776f-e9aa-4332-9c52-a3e9aebadad2",
+    "name": "Health",
+    "created_at": "2023-12-19T20:31:08.073Z",
+    "updated_at": "2023-12-19T20:31:08.073Z"
+  },
+  {
+    "id": "0f34075c-2e5f-462e-8ffa-a91cda88f965",
+    "name": "Tools",
+    "created_at": "2023-12-18T23:00:54.141Z",
+    "updated_at": "2023-12-18T23:00:54.141Z"
+  },
+  {
+    "id": "73430989-7f0e-4008-ada4-533ab76830eb",
+    "name": "Sports",
+    "created_at": "2023-12-24T08:25:50.368Z",
+    "updated_at": "2023-12-24T08:25:50.368Z"
+  },
+  {
+    "id": "c22274d5-4b19-4926-bdce-944dce4e078b",
+    "name": "Outdoors",
+    "created_at": "2023-12-18T00:19:50.820Z",
+    "updated_at": "2023-12-18T00:19:50.820Z"
+  },
+  {
+    "id": "1b8524ab-0b6e-4d76-8e83-3a86a6285c02",
+    "name": "Sports",
+    "created_at": "2023-12-24T05:22:53.008Z",
+    "updated_at": "2023-12-24T05:22:53.008Z"
+  },
+  {
+    "id": "634fa35f-e013-4f9c-bfe0-52cb2e39161f",
+    "name": "Clothing",
+    "created_at": "2023-12-17T06:13:35.800Z",
+    "updated_at": "2023-12-17T06:13:35.800Z"
+  },
+  {
+    "id": "28db3e75-f607-4aa1-af34-37da9bdd1bc2",
+    "name": "Automotive",
+    "created_at": "2023-12-15T17:21:21.642Z",
+    "updated_at": "2023-12-15T17:21:21.642Z"
+  },
+  {
+    "id": "19fbb7b8-84ee-444a-8157-2822d49f7024",
+    "name": "Home",
+    "created_at": "2023-12-19T06:08:11.475Z",
+    "updated_at": "2023-12-19T06:08:11.475Z"
+  },
+  {
+    "id": "a6b0e711-cfc4-4750-b346-3e771f80864f",
+    "name": "Jewelery",
+    "created_at": "2023-12-24T02:04:05.001Z",
+    "updated_at": "2023-12-24T02:04:05.001Z"
+  }
+]

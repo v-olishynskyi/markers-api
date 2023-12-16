@@ -6,6 +6,7 @@ import { UsersModule } from 'src/models/users/users.module';
 import { MarkersModule } from 'src/models/markers/markers.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { GroupsModule } from 'src/models/groups/groups.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { join } from 'path';
     UsersModule,
     MarkersModule,
     FilesModule,
+    GroupsModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'images'),

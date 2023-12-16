@@ -5,6 +5,8 @@ import { PublicFile } from 'src/models/files/entities/file.entity';
 import databaseConfig from 'src/configs/database/postgres';
 import { SEQUELIZE, DEV, PROD, TEST } from 'src/common/constants';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
+import { Group } from 'src/models/groups/entities/group.entity';
+import { GroupUsers } from 'src/models/groups/entities/group-users.entity';
 
 export const databaseProviders = [
   {
@@ -28,7 +30,14 @@ export const databaseProviders = [
         ...config,
         timezone: '+00:00',
       });
-      sequelize.addModels([User, Marker, UserSession, PublicFile]);
+      sequelize.addModels([
+        User,
+        Marker,
+        UserSession,
+        PublicFile,
+        Group,
+        GroupUsers,
+      ]);
       await sequelize.sync();
       return sequelize;
     },

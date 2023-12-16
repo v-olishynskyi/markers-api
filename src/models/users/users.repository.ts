@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { USERS_REPOSITORY } from 'src/common/constants';
 import { CreateUserDto, UserDto } from './dto/users.dto';
 import { PublicFile } from 'src/models/files/entities/file.entity';
+import { Group } from 'src/models/groups/entities/group.entity';
 
 @Injectable()
 export class UsersRepository {
@@ -14,7 +15,7 @@ export class UsersRepository {
   async one(options?: FindOptions<User>): Promise<User | null> {
     return await this.userModel.findOne<User>({
       raw: true,
-      include: PublicFile,
+      include: [PublicFile, Group],
       ...options,
     });
   }

@@ -18,6 +18,7 @@ import { Op } from 'sequelize';
 import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { PublicFile } from 'src/models/files/entities/file.entity';
+import { Group } from 'src/models/groups/entities/group.entity';
 
 @Injectable()
 export class UsersService {
@@ -81,6 +82,8 @@ export class UsersService {
     const user = await this.usersRepository.one({
       where,
       attributes: { exclude: ['password'] },
+      nest: false,
+      raw: true,
       ...options,
     });
 
@@ -133,10 +136,10 @@ export class UsersService {
     userId: string,
     userSessionId: string,
     app_version: string | null,
-    ip: string | null,
+    // ip: string | null,
   ): Promise<UserProfileDto> {
     const userEntity = await this.getById(userId, {
-      include: [UserSession, PublicFile],
+      include: [UserSession, PublicFile, Group],
       raw: false,
       nest: true,
     });
