@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid()) @db.Uuid
+  email       String       @unique
+  password    String       @db.VarChar(255)
+  first_name  String       @db.VarChar(255)
+  last_mame   String       @db.VarChar(255)
+  username    String       @unique @default("") @db.VarChar(255)
+  middle_name String       @db.VarChar(255)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  markers     Marker[]
+  groups      GroupsOnUsers[]
+
+  @@map("Users")
+}
+
+model Marker {
+  id          String    @id @db.Uuid
+  name        String    @db.VarChar(255)
+  description String?   @db.VarChar(255)
+  is_draft    Boolean?  @default(false)
+  is_hidden   Boolean?  @default(false)
+  images      String[]  @db.VarChar(255)
+  latitude    Decimal   @db.Decimal
+  longitude   Decimal   @db.Decimal
+  user_id     String    @db.Uuid
+  author      User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@map("Markers")
+}
+
+model Group {
+  id         String       @id @db.Uuid
+  name       String       @db.VarChar(255)
+  created_at DateTime    @db.Timestamptz(6)
+  updated_at DateTime    @db.Timestamptz(6)
+  users GroupsOnUsers[]
+
+  @@map("Groups")
+}
+
+model UserSession {
+  id          String    @id @db.Uuid
+  user_id     String?   @db.Uuid
+  device      Json?     @db.Json
+  ip          String?   @db.VarChar(255)
+  app_version String?   @db.VarChar(255)
+  location    String?   @db.VarChar(255)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@map("UserSessions")
+}
+
+model GroupsOnUsers {
+  user_id    String  @db.Uuid
+  user       User    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  group_id   String  @db.Uuid
+  group      Group   @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@id([user_id, group_id])
+}
+
+model PublicFile {
+  id           String    @id @db.Uuid
+  user_id      String?   @db.Uuid
+  marker_id    String?   @db.Uuid
+  key          String?   @db.VarChar(255)
+  url          String?   @db.VarChar(255)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  @@map("PublicFiles")
+}
+
+model SequelizeMeta {
+  name String @id @db.VarChar(255)
+}
