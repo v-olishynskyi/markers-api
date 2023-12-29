@@ -18,8 +18,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FilesService } from './files.service';
-import { FileBodyDto } from './dto/public-file.dto';
-import { PublicFile } from 'src/models/files/entities/file.entity';
+import { Prisma } from '@prisma/client';
+import { FileBodyDto } from 'src/models/files/dto/public-file.dto';
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
@@ -41,12 +41,12 @@ export class FilesController {
   @Post('upload')
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: FileBodyDto,
+    @Body() body: Prisma.PublicFileCreateInput & FileBodyDto,
   ) {
     try {
       const response = await this.filesService.create(file.buffer, body);
-      const plain = response.get({ plain: true });
-      return plain;
+
+      return response;
     } catch (error) {
       throw new HttpException('Error when upload file', 500);
     }
@@ -55,7 +55,7 @@ export class FilesController {
   @ApiOperation({
     summary: 'Get file by id',
   })
-  @ApiOkResponse({ type: PublicFile })
+  // @ApiOkResponse({ type: PublicFile })
   @Get('/:id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
     return await this.filesService.getById(id);

@@ -1,13 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma, PublicFile } from '@prisma/client';
 import { S3 } from 'aws-sdk';
-import { FindOptions, WhereOptions } from 'sequelize';
 import {
   FileBodyDto,
-  PublicFileDto,
   UpdateFileDto,
 } from 'src/models/files/dto/public-file.dto';
-import { PublicFile } from 'src/models/files/entities/file.entity';
 import { FileTypeEnum } from 'src/models/files/enums';
 import { PublicFileRepository } from 'src/models/files/files.repository';
 import { v4 as uuid } from 'uuid';
@@ -19,37 +17,27 @@ export class FilesService {
     private readonly publicFileRepository: PublicFileRepository,
   ) {}
 
-  async findById(
-    id: string,
-    options?: Omit<FindOptions<PublicFile>, 'where'>,
-  ): Promise<PublicFile | null> {
-    const where: WhereOptions<PublicFile> = { id };
-    const publicFile = await this.publicFileRepository.one({
-      where,
-      ...options,
-    });
+  async findById(id: string): Promise<PublicFile | null> {
+    const where: Prisma.PublicFileWhereUniqueInput = { id };
+    const publicFile = await this.publicFileRepository.one(where);
 
     return publicFile;
   }
 
-  async getById(
-    id: string,
-    options?: Omit<FindOptions<PublicFile>, 'where'>,
-  ): Promise<PublicFile> {
-    const where: WhereOptions<PublicFile> = { id };
-    const publicFile = await this.publicFileRepository.one({
-      where,
-      ...options,
-    });
+  async getById(id: string): Promise<PublicFile> {
+    const file = await this.findById(id);
 
-    if (!publicFile) {
-      throw new NotFoundException('Public file not found');
+    if (!file) {
+      throw new NotFoundException('File not found');
     }
 
-    return publicFile;
+    return file;
   }
 
-  async create(buffer: Buffer, body: FileBodyDto) {
+  async create(
+    buffer: Buffer,
+    body: Prisma.PublicFileCreateInput & FileBodyDto,
+  ) {
     const s3 = new S3();
 
     const key = `${uuid()}`;
@@ -85,7 +73,7 @@ export class FilesService {
   async delete(id: string) {
     const s3 = new S3();
 
-    const file = (await this.getById(id)).get({ plain: true });
+    await this.getById(id);
 
     await this.publicFileRepository.delete(id);
   }

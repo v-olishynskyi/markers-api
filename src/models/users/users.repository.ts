@@ -1,31 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { FindOptions, WhereOptions } from 'sequelize';
-import { User } from './entities/user.entity';
-import { USERS_REPOSITORY } from 'src/common/constants';
-import { CreateUserDto, UserDto } from './dto/users.dto';
-import { PublicFile } from 'src/models/files/entities/file.entity';
-import { Group } from 'src/models/groups/entities/group.entity';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/database/prisma.service';
+import { CreateUserDto } from 'src/models/users/dto/users.dto';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @Inject(USERS_REPOSITORY) private readonly userModel: typeof User,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async one(options?: FindOptions<User>): Promise<User | null> {
-    return await this.userModel.findOne<User>({
-      raw: true,
-      include: [PublicFile, Group],
-      ...options,
-    });
-  }
-
-  async all(options?: FindOptions<User>): Promise<User[]> {
-    return await this.userModel.findAll({
-      attributes: { exclude: ['password'] },
-      include: PublicFile,
-      nest: true,
-      raw: true,
+  async all(
+    where?: Prisma.UserWhereInput,
+    options?: Omit<Prisma.UserFindManyArgs, 'where'>,
+  ) {
+    return this.prisma.user.findMany({
+      where,
       ...options,
     });
   }
@@ -35,36 +22,38 @@ export class UsersRepository {
     limit,
     where,
   }: {
-    offset: number;
-    limit: number;
-    where?: WhereOptions<User> | undefined;
-  }): Promise<{
-    rows: User[];
-    count: number;
-  }> {
-    return await this.userModel.findAndCountAll<User>({
-      include: PublicFile,
-      limit,
-      offset,
+    offset?: number;
+    limit?: number;
+    where?: Prisma.UserWhereInput;
+  }) {
+    return this.prisma.user.findMany({
+      take: limit,
+      skip: offset,
       where,
-      attributes: { exclude: ['password'] },
+      include: { avatar: true, _count: true },
     });
   }
 
-  async create(createUserDto: CreateUserDto) {
-    return await this.userModel.create<User>(createUserDto as User);
+  async one(where: Prisma.UserWhereUniqueInput, include?: Prisma.UserInclude) {
+    return this.prisma.user.findUnique({
+      where,
+      include: { avatar: true, ...include },
+    });
   }
 
-  async update(id: string, data: Partial<UserDto>) {
-    const [, [user]] = await this.userModel.update<User>(data as User, {
-      where: { id },
-      returning: true,
-    });
+  async create(data: CreateUserDto) {
+    return await this.prisma.user.create({ data });
+  }
 
-    return user.get({ plain: true });
+  async update(id: string, data: Prisma.UserUpdateInput) {
+    const where: Prisma.UserWhereUniqueInput = { id };
+
+    return this.prisma.user.update({ where, data, include: { avatar: true } });
   }
 
   async delete(id: string) {
-    return Boolean(await this.userModel.destroy<User>({ where: { id } }));
+    const where: Prisma.UserWhereUniqueInput = { id };
+
+    return this.prisma.user.delete({ where });
   }
 }

@@ -1,29 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { GroupsRepository } from 'src/models/groups/groups.repository';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GroupsService {
   constructor(private readonly groupsRepository: GroupsRepository) {}
 
-  create(createGroupDto: CreateGroupDto) {
-    return 'This action adds a new group';
-  }
-
   findAll() {
-    return this.groupsRepository.all();
+    return this.groupsRepository.all({ options: { include: { users: true } } });
   }
 
-  findOne(id: string) {
-    return this.groupsRepository.one(id);
+  async findById(id: string, include?: Prisma.GroupInclude) {
+    const where: Prisma.GroupWhereUniqueInput = { id };
+
+    const group = await this.groupsRepository.one(where, include);
+
+    return group;
   }
 
-  update(id: number, updateGroupDto: UpdateGroupDto) {
-    return `This action updates a #${id} group`;
+  async getById(id: string, include?: Prisma.GroupInclude) {
+    const group = await this.findById(id, include);
+
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+
+    return group;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} group`;
+  create(createGroupDto: Prisma.GroupCreateInput) {
+    return this.groupsRepository.create(createGroupDto);
+  }
+
+  async update(id: string, updateGroupDto: Prisma.GroupUpdateInput) {
+    await this.getById(id);
+
+    return this.groupsRepository.update(id, updateGroupDto);
+  }
+
+  async remove(id: string) {
+    await this.getById(id);
+
+    return this.groupsRepository.delete(id);
   }
 }

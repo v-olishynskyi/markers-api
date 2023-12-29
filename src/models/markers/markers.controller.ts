@@ -12,46 +12,41 @@ import {
 import { MarkersService } from './markers.service';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { Marker } from 'src/models/markers/entities/marker.entity';
-import {
-  CreateMarkerDto,
-  UpdateMarkerDto,
-} from 'src/models/markers/dto/markers.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('Markers')
-@ApiBearerAuth()
-@UseGuards(AuthGuard)
+// @ApiBearerAuth()
+// @UseGuards(AuthGuard)
 @Controller('markers')
 export class MarkersController {
   constructor(private readonly markersService: MarkersService) {}
 
   @ApiOperation({ summary: 'Get markers', description: 'Get all markers' })
-  @ApiOkResponse({ type: [Marker] })
+  // @ApiOkResponse({ type: [Marker] })
   @Get('/')
   async getAll() {
-    return await this.markersService.getAllMarkers();
+    return await this.markersService.getAll();
   }
 
   @ApiOperation({
     summary: 'Get marker',
     description: 'Get one marker by id',
   })
-  @ApiOkResponse({ type: Marker })
+  // @ApiOkResponse({ type: Marker })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
     return await this.markersService.getById(id);
   }
 
   @ApiOperation({ summary: 'Create marker', description: 'Create new marker' })
-  @ApiCreatedResponse({ type: Marker })
+  // @ApiCreatedResponse({ type: Marker })
   @Post('/')
-  async createMarker(@Body() body: CreateMarkerDto) {
+  async createMarker(@Body() body: Prisma.MarkerCreateInput) {
     return await this.markersService.create(body);
   }
 
@@ -63,7 +58,7 @@ export class MarkersController {
   @Put('/:id')
   async updateMarker(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: UpdateMarkerDto,
+    @Body() body: Prisma.MarkerUpdateInput,
   ) {
     return await this.markersService.update(id, body);
   }
@@ -74,7 +69,7 @@ export class MarkersController {
   })
   @ApiOkResponse()
   @Delete('/:id')
-  async deleteMarker(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
+  async deleteMarker(@Param('id', ParseUUIDPipe) id: string) {
     return await this.markersService.delete(id);
   }
 }

@@ -3,22 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  UserDto,
-  CreateUserDto,
-  UpdateUserDto,
-  UserProfileDto,
-} from 'src/models/users/dto/users.dto';
 import { UsersRepository } from './users.repository';
 import { PaginationParams } from 'src/common/types';
-import { FindOptions, WhereOptions } from 'sequelize';
-import { User } from './entities/user.entity';
 import { PaginationResponse } from 'src/common/helpers';
-import { Op } from 'sequelize';
-import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
-import { PublicFile } from 'src/models/files/entities/file.entity';
-import { Group } from 'src/models/groups/entities/group.entity';
+import { Prisma, User } from '@prisma/client';
+import { CreateUserDto } from 'src/models/users/dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -27,8 +17,13 @@ export class UsersService {
     private readonly userSessionsRepository: UserSessionsRepository,
   ) {}
 
-  async getAll(): Promise<UserDto[]> {
-    return await this.usersRepository.all();
+  async getAll() {
+    return await this.usersRepository.all(
+      {},
+      {
+        include: { avatar: true, groups: { select: { group: true } } },
+      },
+    );
   }
 
   async paginated({ limit, page, search }: PaginationParams) {
@@ -36,35 +31,37 @@ export class UsersService {
     const _limit = +limit;
     const offset = _page * _limit;
 
-    const where: WhereOptions<User> | undefined = !!search
+    const where: Prisma.UserWhereInput = !!search
       ? {
-          [Op.or]: {
-            last_name: { [Op.iLike]: `%${search}` },
-            first_name: { [Op.iLike]: `%${search}` },
-            middle_name: { [Op.iLike]: `%${search}` },
-            email: { [Op.iLike]: `%${search}` },
-            username: { [Op.iLike]: `%${search}` },
-          },
+          OR: [
+            {
+              last_name: { contains: search },
+              first_name: { contains: search },
+              middle_name: { contains: search },
+              email: { contains: search },
+              username: { contains: search },
+            },
+          ],
         }
-      : undefined;
+      : {};
 
-    const { count, rows } = await this.usersRepository.allByPagination({
+    const users = await this.usersRepository.allByPagination({
       limit: _limit,
       offset: offset,
       where,
     });
 
-    const last_page = Math.floor(count / _limit);
+    const last_page = Math.floor(users.length / _limit);
     const next_page = _page === last_page ? null : Number(_page + 1);
     const prev_page = _page > 0 ? _page - 1 : null;
 
-    const response: PaginationResponse<UserDto> = {
-      data: rows,
+    const response: PaginationResponse<User> = {
+      data: users,
       meta: {
         current_page: +_page,
         last_page,
         per_page: +_limit,
-        total: count,
+        total: 1,
         next_page,
         prev_page,
         search: search || null,
@@ -74,32 +71,16 @@ export class UsersService {
     return response;
   }
 
-  async findById(
-    id: string,
-    options?: Omit<FindOptions<User>, 'where'>,
-  ): Promise<User | null> {
-    const where: WhereOptions<User> = { id };
-    const user = await this.usersRepository.one({
-      where,
-      attributes: { exclude: ['password'] },
-      nest: false,
-      raw: true,
-      ...options,
-    });
+  async findById(id: string, include?: Prisma.UserInclude) {
+    const where: Prisma.UserWhereUniqueInput = { id };
+
+    const user = await this.usersRepository.one(where, include);
 
     return user;
   }
 
-  async getById(
-    id: string,
-    options?: Omit<FindOptions<User>, 'where'>,
-  ): Promise<User> {
-    const where: WhereOptions<User> = { id };
-    const user = await this.usersRepository.one({
-      where,
-      attributes: { exclude: ['password'] },
-      ...options,
-    });
+  async getById(id: string, include?: Prisma.UserInclude) {
+    const user = await this.findById(id, include);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -108,22 +89,16 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(
-    email: string,
-    options?: Omit<FindOptions<User>, 'where'>,
-  ): Promise<User | null> {
-    const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one({ where, ...options });
+  async findByEmail(email: string, include?: Prisma.UserInclude) {
+    const where: Prisma.UserWhereUniqueInput = { email };
+
+    const user = await this.usersRepository.one(where, include);
 
     return user;
   }
 
-  async getByEmail(
-    email: string,
-    options?: Omit<FindOptions<User>, 'where'>,
-  ): Promise<User> {
-    const where: WhereOptions<User> = { email };
-    const user = await this.usersRepository.one({ where, ...options });
+  async getByEmail(email: string, include?: Prisma.UserInclude) {
+    const user = await this.findByEmail(email, include);
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -136,15 +111,9 @@ export class UsersService {
     userId: string,
     userSessionId: string,
     app_version: string | null,
-    // ip: string | null,
-  ): Promise<UserProfileDto> {
-    const userEntity = await this.getById(userId, {
-      include: [UserSession, PublicFile, Group],
-      raw: false,
-      nest: true,
-    });
-
-    const user = userEntity.get({ plain: true });
+    ip: string | null,
+  ) {
+    const user = await this.getById(userId, { sessions: true });
 
     // let hasNewIp = false;
     let hasNewAppVersion = false;
@@ -173,7 +142,7 @@ export class UsersService {
     return response;
   }
 
-  async create(data: CreateUserDto): Promise<User> {
+  async create(data: CreateUserDto) {
     const user = await this.findByEmail(data.email);
 
     if (user) {
@@ -183,17 +152,15 @@ export class UsersService {
     return await this.usersRepository.create(data);
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<User> {
-    const user = await this.findById(id);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  async update(id: string, data: Prisma.UserUpdateInput) {
+    await this.getById(id);
 
     return await this.usersRepository.update(id, data);
   }
 
   async delete(id: string) {
+    await this.getById(id);
+
     return await this.usersRepository.delete(id);
   }
 }

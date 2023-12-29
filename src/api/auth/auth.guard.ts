@@ -20,37 +20,42 @@ export class AuthGuard implements CanActivate {
 
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException();
-    }
-    const payload = await this.jwtService.verifyAsync(token);
-
-    try {
-      const userSession = await this.userSessionsRepository.one(
-        {
-          id: payload['userSessionId'],
-        },
-        {
-          attributes: {
-            exclude: ['user_id', 'device', 'created_at', 'updated_at', 'user'],
-          },
-        },
+      throw new UnauthorizedException(
+        'No access token provided',
+        'expired_token',
       );
-
-      if (!userSession) {
-        throw new UnauthorizedException(
-          'Session terminated',
-          'session_terminated',
-        );
-      }
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['userId'] = payload['userId'];
-      request['userSessionId'] = payload['userSessionId'];
-
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException('Expired token', 'expired_token');
     }
+
+    return this.jwtService
+      .verifyAsync(token)
+      .then(async (payload) => {
+        try {
+          const userSession = await this.userSessionsRepository.one({
+            id: payload['userSessionId'],
+          });
+
+          if (!userSession) {
+            throw new UnauthorizedException(
+              'Session terminated',
+              'session_terminated',
+            );
+          }
+          // 💡 We're assigning the payload to the request object here
+          // so that we can access it in our route handlers
+          request['userId'] = payload['userId'];
+          request['userSessionId'] = payload['userSessionId'];
+
+          return true;
+        } catch (error) {
+          throw new UnauthorizedException(
+            'Session terminated',
+            'session_terminated',
+          );
+        }
+      })
+      .catch(() => {
+        throw new UnauthorizedException('Expired token', 'expired_token');
+      });
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

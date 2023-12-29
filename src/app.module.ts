@@ -7,23 +7,20 @@ import { MarkersModule } from 'src/models/markers/markers.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GroupsModule } from 'src/models/groups/groups.module';
-import { PrismaService } from 'src/common/shared/prisma.service';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Module({
   imports: [
-    PrismaService,
     AuthModule,
-    UsersModule,
     MarkersModule,
     FilesModule,
     GroupsModule,
+    UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'images'),
       exclude: ['/api/(.*)'],
     }),
   ],
-  controllers: [],
-  providers: [],
 })
 export class AppModule {}

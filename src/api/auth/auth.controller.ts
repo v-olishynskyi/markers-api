@@ -61,15 +61,21 @@ export class AuthController {
   })
   @ApiResponse({ status: HttpStatus.CREATED })
   @Post('/sign-up')
-  async signUp(@Body() signUpData: CreateUserDto) {
+  async signUp(
+    @Body() signUpData: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     await this.authService.signUp({
       ...signUpData,
       email: signUpData.email.toLowerCase(),
     });
 
-    return {
-      message: 'Реєстрація успішна',
-    };
+    return res
+      .status(HttpStatus.CREATED)
+      .json({
+        message: 'Реєстрація успішна',
+      })
+      .send();
   }
 
   @ApiOperation({
@@ -84,11 +90,9 @@ export class AuthController {
       refreshToken = req.body['refresh_token'];
     }
 
-    const refreshResponse = await this.authService.refreshAccessToken(
-      refreshToken,
-    );
+    const response = await this.authService.refreshAccessToken(refreshToken);
 
-    return refreshResponse;
+    return response;
   }
 
   @ApiOperation({

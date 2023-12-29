@@ -1,13 +1,11 @@
 [
   {
-    "id": "21dcbfbb-de87-4b62-9e10-8b8715a54603",
     "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
     "group_id": "e5d60aa1-8bf6-4dae-8f38-4bb387cf0ed4",
     "created_at": "2023-12-20T06:23:28.015Z",
     "updated_at": "2023-12-20T06:23:28.015Z"
   },
   {
-    "id": "77cb891a-224c-4afa-bf7e-f2b43e0f6205",
     "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
     "group_id": "e5d60aa1-8bf6-4dae-8f38-4bb387cf0ed4",
     "created_at": "2023-12-20T23:39:03.805Z",

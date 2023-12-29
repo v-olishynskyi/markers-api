@@ -7,15 +7,15 @@ export class PaginationMetadata {
   @IsInt()
   current_page: number;
 
-  @ApiProperty({ name: 'perPage', example: 1 })
+  @ApiProperty({ name: 'per_page', example: 1 })
   @IsInt()
   per_page: number;
 
-  @ApiProperty({ name: 'prevPage', example: 1 })
+  @ApiProperty({ name: 'prev_page', example: 1 })
   @IsNullOrType('number')
   prev_page: number | null;
 
-  @ApiProperty({ name: 'nextPage', example: 1 })
+  @ApiProperty({ name: 'next_page', example: 1 })
   @IsNullOrType('number')
   next_page: number | null;
 

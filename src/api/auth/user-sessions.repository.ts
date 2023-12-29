@@ -1,44 +1,41 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { FindOptions, UpdateOptions, WhereOptions } from 'sequelize';
-import {
-  CreateUserSessionDto,
-  UpdateUserSessionDto,
-} from 'src/api/auth/dto/user-sessions.dto';
-import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
-import { USER_SESSIONS_REPOSITORY } from 'src/common/constants';
+import { Injectable } from '@nestjs/common';
+import { Prisma, UserSession } from '@prisma/client';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class UserSessionsRepository {
-  constructor(
-    @Inject(USER_SESSIONS_REPOSITORY)
-    private readonly userSessionsModel: typeof UserSession,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async one(
-    where: WhereOptions<UserSession> | undefined,
-    options?: Omit<FindOptions<UserSession>, 'where'>,
-  ): Promise<UserSession | null> {
-    return this.userSessionsModel.findOne({ where, ...options });
+  all() {
+    return this.prisma.userSession.findMany();
   }
 
-  async create(data: CreateUserSessionDto) {
-    return this.userSessionsModel.create(data as UserSession);
-  }
-
-  async update(
-    id: string,
-    data: Partial<UpdateUserSessionDto>,
-    options?: Omit<UpdateOptions<UserSession>, 'returning' | 'where'> & {
-      returning: true | (keyof UserSession)[];
-    },
+  one(
+    where: Prisma.UserSessionWhereUniqueInput,
+    include?: Prisma.UserSessionInclude,
   ) {
-    return await this.userSessionsModel.update(data, {
-      where: { id },
-      ...options,
+    return this.prisma.userSession.findUnique({
+      where,
+      include: { user: { select: { email: true } }, ...include },
     });
   }
 
-  async delete(id: string) {
-    return Boolean(await this.userSessionsModel.destroy({ where: { id } }));
+  create(data: Prisma.UserSessionCreateInput): Promise<UserSession> {
+    return this.prisma.userSession.create({ data });
+  }
+
+  update(
+    id: string,
+    data: Prisma.UserSessionUpdateInput,
+  ): Promise<UserSession> {
+    const where: Prisma.UserSessionWhereUniqueInput = { id };
+    return this.prisma.userSession.update({ where, data });
+  }
+
+  delete(id: string) {
+    const where: Prisma.UserSessionWhereUniqueInput = { id };
+    console.log('where', where);
+
+    return this.prisma.userSession.delete({ where });
   }
 }

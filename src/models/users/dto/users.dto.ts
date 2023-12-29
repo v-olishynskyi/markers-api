@@ -64,6 +64,7 @@ export class UserDto {
 export class CreateUserDto extends OmitType(UserDto, [
   'id',
   'avatar',
+  'username',
 ] as const) {}
 export class UpdateUserDto extends OmitType(PartialType(UserDto), [
   'id',

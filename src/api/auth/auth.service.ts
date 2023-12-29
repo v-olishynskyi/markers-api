@@ -2,11 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { SignInDataDto, SignInResponseDto } from './dto/auth.dto';
-import { CreateUserDto, UserDto } from 'src/models/users/dto/users.dto';
+import { CreateUserDto } from 'src/models/users/dto/users.dto';
 import { UsersService } from 'src/models/users/users.service';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { ACCESS_TOKEN_EXPIRED_SEC } from 'src/common/constants';
-import { User } from 'src/models/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -48,15 +47,21 @@ export class AuthService {
     };
   }
 
-  async signUp(registrationData: CreateUserDto): Promise<UserDto> {
+  async signUp(registrationData: CreateUserDto) {
     return await this.usersService.create(registrationData);
   }
 
   async logout(sessionId: string) {
-    if (sessionId) {
-      return await this.userSessionsRepository.delete(sessionId);
-    } else {
-      return true;
+    try {
+      if (sessionId) {
+        return await this.userSessionsRepository.delete(sessionId);
+      } else {
+        return true;
+      }
+    } catch (error) {
+      console.log('asdsadas');
+
+      return new UnauthorizedException('Expired token', 'expired_token');
     }
   }
 
@@ -65,28 +70,32 @@ export class AuthService {
       throw new UnauthorizedException('No refresh token provided');
     }
 
-    const decoded: any = await this.jwtService.decode(refreshToken);
+    const decodedData: any = await this.jwtService.decode(refreshToken);
 
-    const userSessionId = decoded['userSessionId'];
+    const userSessionId = decodedData['userSessionId'];
 
-    const userSession = await this.userSessionsRepository.one(
-      {
+    try {
+      const userSession = await this.userSessionsRepository.one({
         id: userSessionId || '',
-      },
-      { include: User },
-    );
+      });
 
-    if (!userSession || !userSession?.user) {
-      throw new UnauthorizedException('No user session found');
+      if (!userSession || !userSession?.user) {
+        throw new UnauthorizedException('No user session found');
+      }
+
+      const { accessToken } = await this.getTokens(
+        userSession.user_id,
+        userSession.user.email,
+        userSessionId,
+      );
+
+      return { access_token: accessToken };
+    } catch (error) {
+      throw new UnauthorizedException(
+        'Session terminated',
+        'session_terminated',
+      );
     }
-
-    const { accessToken } = await this.getTokens(
-      userSession.user_id,
-      userSession.user.email,
-      userSessionId,
-    );
-
-    return { access_token: accessToken };
   }
 
   private static async verifyPassword(

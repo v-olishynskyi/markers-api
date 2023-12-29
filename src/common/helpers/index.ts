@@ -1,4 +1,4 @@
-export * from './responses/paginations';
+export * from './pagination-responses.dto';
 export * from './getLocationFromIp';
 
 import * as bcrypt from 'bcrypt';

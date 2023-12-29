@@ -4,10 +4,11 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/models/users/users.module';
 import { UserSessionsRepository } from './user-sessions.repository';
-import { userSessionsProviders } from 'src/api/auth/user-sessions.provider';
+import { PrismaModule } from 'src/database/prisma.module';
 
 @Module({
   imports: [
+    PrismaModule,
     UsersModule,
     JwtModule.register({
       global: true,
@@ -15,6 +16,6 @@ import { userSessionsProviders } from 'src/api/auth/user-sessions.provider';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserSessionsRepository, ...userSessionsProviders],
+  providers: [AuthService, UserSessionsRepository],
 })
 export class AuthModule {}

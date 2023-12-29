@@ -11,6 +11,7 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -21,17 +22,11 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UserDto,
-  UserProfileDto,
-} from './dto/users.dto';
+import { CreateUserDto, UserDto, UserProfileDto } from './dto/users.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
 import { ApiPaginationResponse } from 'src/common/decorators/ApiPaginatedResponse.decorator';
-import { PaginationResponse } from 'src/common/helpers';
-import { UserSession } from 'src/api/auth/entities/user-sessions.entity';
-import { QueryTypes } from 'sequelize';
+import { Prisma } from '@prisma/client';
+import { Response } from 'express';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -43,22 +38,23 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   @Get('/all')
-  async getAllUsers(): Promise<UserDto[]> {
+  async getAllUsers() {
     const users = await this.usersService.getAll();
+
     return users.map((user) => ({ ...user, password: '' }));
   }
 
-  @ApiOperation({ summary: 'Get all users with paginations' })
+  @ApiOperation({ summary: 'Get all users with pagination' })
   @ApiPaginationResponse(UserDto)
   @ApiQuery({ name: 'page', required: true, type: Number })
   @ApiQuery({ name: 'limit', required: true, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @Get('/')
-  async getAllUsersByPaginations(
+  async getAllUsersByPagination(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search?: string | null,
-  ): Promise<PaginationResponse<UserDto>> {
+  ) {
     return await this.usersService.paginated({
       page,
       limit,
@@ -73,7 +69,7 @@ export class UsersController {
     @Req() req: Request,
     @Headers('X-Device-Ip') ip: string | null,
     @Headers('X-App-Version') app_version: string | null,
-  ): Promise<UserProfileDto> {
+  ) {
     const userId = req['userId'];
     const userSessionId = req['userSessionId'];
 
@@ -88,16 +84,18 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user', description: 'Get user by id' })
   @ApiResponse({ status: HttpStatus.OK, type: UserDto })
   @Get('/:id')
-  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<UserDto> {
+  async getById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.getById(id);
+
     return { ...user };
   }
 
   @ApiOperation({ summary: 'Create user' })
   @ApiResponse({ status: HttpStatus.CREATED, type: UserDto })
   @Post('/')
-  async createUser(@Body() data: CreateUserDto): Promise<UserDto> {
+  async createUser(@Body() data: CreateUserDto) {
     const user = await this.usersService.create(data);
+
     return { ...user };
   }
 
@@ -106,16 +104,25 @@ export class UsersController {
   @Put('/:id')
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() data: UpdateUserDto,
-  ): Promise<UserDto> {
+    @Body() data: Prisma.UserUpdateInput,
+  ) {
     const user = await this.usersService.update(id, data);
+
     return { ...user };
   }
 
   @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })
   @ApiResponse({ status: HttpStatus.OK })
   @Delete('/:id')
-  async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<boolean> {
-    return await this.usersService.delete(id);
+  async deleteUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.usersService.delete(id);
+
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'User successfuly deleted' })
+      .send();
   }
 }

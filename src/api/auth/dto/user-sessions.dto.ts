@@ -69,7 +69,6 @@ export class UserSessionDto {
 }
 
 export class CreateUserSessionDto extends OmitType(UserSessionDto, [
-  'id',
   'user',
 ] as const) {}
 

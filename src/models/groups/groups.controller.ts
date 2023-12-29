@@ -6,19 +6,14 @@ import {
   Patch,
   Param,
   Delete,
-  UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
-import {
-  ApiBearerAuth,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
-import { AuthGuard } from 'src/api/auth/auth.guard';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GroupDto } from 'src/models/groups/dto/groups.dto';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('Groups')
 // @ApiBearerAuth()
@@ -26,11 +21,6 @@ import { GroupDto } from 'src/models/groups/dto/groups.dto';
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
-
-  @Post()
-  create(@Body() createGroupDto: CreateGroupDto) {
-    return this.groupsService.create(createGroupDto);
-  }
 
   @ApiOperation({ summary: 'Get groups', description: 'Get all groups' })
   @ApiOkResponse({ type: [GroupDto] })
@@ -40,17 +30,25 @@ export class GroupsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupsService.findOne(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.groupsService.getById(id);
+  }
+
+  @Post()
+  create(@Body() createGroupDto: Prisma.GroupCreateInput) {
+    return this.groupsService.create(createGroupDto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGroupDto: UpdateGroupDto) {
-    return this.groupsService.update(+id, updateGroupDto);
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateGroupDto: Prisma.GroupUpdateInput,
+  ) {
+    return this.groupsService.update(id, updateGroupDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.remove(+id);
+  delete(@Param('id', ParseUUIDPipe) id: string) {
+    return this.groupsService.remove(id);
   }
 }

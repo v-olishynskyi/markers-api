@@ -1,12 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
-import {
-  CreateMarkerDto,
-  UpdateMarkerDto,
-} from 'src/models/markers/dto/markers.dto';
-import { FindOptions, WhereOptions } from 'sequelize';
-import { Marker } from 'src/models/markers/entities/marker.entity';
 import { FilesService } from 'src/models/files/files.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MarkersService {
@@ -15,28 +10,22 @@ export class MarkersService {
     private readonly publicFileService: FilesService,
   ) {}
 
-  async findById(
-    id: string,
-    options?: Omit<FindOptions<Marker>, 'where'>,
-  ): Promise<Marker | null> {
-    const where: WhereOptions<Marker> = { id };
-    const marker = await this.markersRepository.one({
-      where,
-      ...options,
+  async getAll() {
+    return await this.markersRepository.all({
+      options: { include: { author: true, images: true } },
     });
+  }
+
+  async findById(id: string, include?: Prisma.MarkerInclude) {
+    const where: Prisma.MarkerWhereUniqueInput = { id };
+
+    const marker = await this.markersRepository.one(where, include);
 
     return marker;
   }
 
-  async getById(
-    id: string,
-    options?: Omit<FindOptions<Marker>, 'where'>,
-  ): Promise<Marker> {
-    const where: WhereOptions<Marker> = { id };
-    const marker = await this.markersRepository.one({
-      where,
-      ...options,
-    });
+  async getById(id: string, include?: Prisma.MarkerInclude) {
+    const marker = await this.findById(id, include);
 
     if (!marker) {
       throw new NotFoundException('Marker not found');
@@ -45,19 +34,7 @@ export class MarkersService {
     return marker;
   }
 
-  async getAllMarkers() {
-    const markers = await this.markersRepository.all();
-
-    const markersData = markers.map((markerEntity) => {
-      const marker = markerEntity.get({ plain: true });
-
-      return marker;
-    });
-
-    return markersData;
-  }
-
-  async create(data: CreateMarkerDto): Promise<Marker> {
+  async create(data: Prisma.MarkerCreateInput) {
     const images = data?.images;
 
     const createdMarker = await this.markersRepository.create({
@@ -80,9 +57,8 @@ export class MarkersService {
     return marker;
   }
 
-  async update(id: string, data: UpdateMarkerDto) {
-    const sourceMarkerInstance = await this.getById(id);
-    const sourceMarker = sourceMarkerInstance.get({ plain: true });
+  async update(id: string, data: Prisma.MarkerUpdateInput) {
+    const sourceMarker = await this.getById(id, { images: true });
 
     const sourceMarkerImagesIds = sourceMarker.images.map(({ id }) => id);
     const updatingMarkerImagesIds = data.images;
@@ -122,6 +98,8 @@ export class MarkersService {
   }
 
   async delete(id: string) {
+    await this.getById(id);
+
     return await this.markersRepository.delete(id);
   }
 }

@@ -1,54 +1,38 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PUBLIC_FILE_REPOSITORY } from 'src/common/constants';
-import {
-  CreateFileDto,
-  UpdateFileDto,
-} from 'src/models/files/dto/public-file.dto';
-import { FindOptions } from 'sequelize';
-import { PublicFile } from 'src/models/files/entities/file.entity';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class PublicFileRepository {
-  constructor(
-    @Inject(PUBLIC_FILE_REPOSITORY)
-    private readonly publicFileModel: typeof PublicFile,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async all(options?: FindOptions<PublicFile>): Promise<PublicFile[]> {
-    return (
-      (await this.publicFileModel.findAll<PublicFile>({
-        raw: true,
-        ...options,
-      })) ?? []
-    );
+  all() {
+    return this.prisma.publicFile.findMany();
   }
 
-  async one(options?: FindOptions<PublicFile>): Promise<PublicFile | null> {
-    return await this.publicFileModel.findOne<PublicFile>({
-      raw: true,
-      ...options,
+  one(
+    where: Prisma.PublicFileWhereUniqueInput,
+    select?: Prisma.PublicFileSelect,
+  ) {
+    return this.prisma.publicFile.findUnique({ where, select });
+  }
+
+  create(data: Prisma.PublicFileCreateInput, select?: Prisma.PublicFileSelect) {
+    return this.prisma.publicFile.create({ data, select });
+  }
+
+  async update(id: string, data: Prisma.PublicFileUpdateInput) {
+    const file = await this.prisma.publicFile.update({
+      where: { id },
+      data,
     });
-  }
-
-  async create(createFileDto: CreateFileDto): Promise<PublicFile> {
-    return await this.publicFileModel.create(createFileDto as PublicFile);
-  }
-
-  async update(id: string, data: UpdateFileDto) {
-    const [, [file]] = await this.publicFileModel.update<PublicFile>(
-      data as PublicFile,
-      {
-        where: { id },
-        returning: true,
-      },
-    );
 
     return file;
   }
 
   async delete(id: string) {
-    return Boolean(
-      await this.publicFileModel.destroy<PublicFile>({ where: { id } }),
-    );
+    const where: Prisma.PublicFileWhereUniqueInput = { id };
+
+    return this.prisma.publicFile.delete({ where });
   }
 }
