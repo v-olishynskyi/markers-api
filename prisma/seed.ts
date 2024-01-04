@@ -10,7 +10,7 @@ const client = new PrismaClient();
 console.log('usersJson', usersJson.length);
 console.log('markersJson', markersJson.length);
 console.log('avatarsJson', avatarsJson.length);
-console.log('groupsJson', groupsJson.length);
+console.log('groupsJson', groupsJson);
 console.log('groupsOnUsersJson', groupsOnUsersJson.length);
 
 async function users(prisma: PrismaClient) {
