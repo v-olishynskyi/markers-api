@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { SignInDataDto, SignInResponseDto } from './dto/auth.dto';
-import { CreateUserDto } from 'src/models/users/dto/users.dto';
 import { UsersService } from 'src/models/users/users.service';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { ACCESS_TOKEN_EXPIRED_SEC } from 'src/common/constants';
+import { SignInDto, SignInResponseDto } from 'src/api/auth/dto';
+import { CreateUserDto } from 'src/models/users/dto';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async signIn(
-    body: SignInDataDto,
+    body: SignInDto,
     ip: string | null,
     app_version: string | null,
   ): Promise<SignInResponseDto> {

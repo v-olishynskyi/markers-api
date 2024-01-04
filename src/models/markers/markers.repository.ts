@@ -13,16 +13,17 @@ export class MarkersRepository {
     } = {},
   ) {
     const { where, options } = params;
+
     return this.prisma.marker.findMany({ where, ...options });
   }
 
   async one(
     where: Prisma.MarkerWhereUniqueInput,
-    include?: Prisma.MarkerInclude,
+    options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
   ) {
     return this.prisma.marker.findUnique({
       where,
-      include: { author: true, images: true, ...include },
+      ...options,
     });
   }
 
@@ -33,7 +34,11 @@ export class MarkersRepository {
   async update(id: string, data: Prisma.MarkerUpdateInput) {
     const where: Prisma.MarkerWhereUniqueInput = { id };
 
-    return this.prisma.marker.update({ where, data });
+    return this.prisma.marker.update({
+      where,
+      data,
+      include: { author: true, images: true },
+    });
   }
 
   async delete(id: string) {

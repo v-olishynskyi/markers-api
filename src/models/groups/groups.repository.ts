@@ -19,17 +19,20 @@ export class GroupsRepository {
     });
   }
 
-  one(where: Prisma.GroupWhereUniqueInput, include?: Prisma.GroupInclude) {
+  one(
+    where: Prisma.GroupWhereUniqueInput,
+    options?: Omit<Prisma.GroupFindUniqueArgs, 'where'>,
+  ) {
     return this.prisma.group.findUnique({
       where,
-      include: { users: true, ...include },
+      ...options,
     });
   }
 
   create(data: Prisma.GroupCreateInput, include?: Prisma.GroupInclude) {
     return this.prisma.group.create({
       data,
-      include: { users: true, ...include },
+      include: { members: true, ...include },
     });
   }
 
@@ -43,7 +46,7 @@ export class GroupsRepository {
     return this.prisma.group.update({
       where,
       data,
-      include: { users: true, ...include },
+      include: { members: true, ...include },
     });
   }
 

@@ -6,8 +6,15 @@ import { PrismaService } from 'src/database/prisma.service';
 export class UserSessionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  all() {
-    return this.prisma.userSession.findMany();
+  all(options?: Prisma.UserSessionFindManyArgs) {
+    return this.prisma.userSession.findMany(options);
+  }
+
+  allByUser(userId: string, include?: Prisma.UserSessionInclude) {
+    return this.prisma.userSession.findMany({
+      where: { user_id: userId },
+      include: { user: true, ...include },
+    });
   }
 
   one(
@@ -34,7 +41,6 @@ export class UserSessionsRepository {
 
   delete(id: string) {
     const where: Prisma.UserSessionWhereUniqueInput = { id };
-    console.log('where', where);
 
     return this.prisma.userSession.delete({ where });
   }

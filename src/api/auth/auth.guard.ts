@@ -20,10 +20,7 @@ export class AuthGuard implements CanActivate {
 
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException(
-        'No access token provided',
-        'expired_token',
-      );
+      throw new UnauthorizedException();
     }
 
     return this.jwtService

@@ -1,47 +1,53 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateUserDto } from 'src/models/users/dto/users.dto';
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async all(
-    where?: Prisma.UserWhereInput,
-    options?: Omit<Prisma.UserFindManyArgs, 'where'>,
+    params: {
+      where?: Prisma.UserWhereInput;
+      options?: Omit<Prisma.UserFindManyArgs, 'where'>;
+    } = {},
   ) {
+    const { where, options } = params;
+
     return this.prisma.user.findMany({
       where,
       ...options,
     });
   }
 
-  async allByPagination({
-    offset,
-    limit,
-    where,
-  }: {
-    offset?: number;
-    limit?: number;
-    where?: Prisma.UserWhereInput;
-  }) {
-    return this.prisma.user.findMany({
-      take: limit,
-      skip: offset,
-      where,
-      include: { avatar: true, _count: true },
+  async paginated(params: Prisma.UserFindManyArgs) {
+    const usersQuery = this.prisma.user.findMany({
+      ...params,
     });
+
+    const countQuery = this.prisma.user.count({
+      where: params.where,
+    });
+
+    const [users, count] = await this.prisma.$transaction([
+      usersQuery,
+      countQuery,
+    ]);
+
+    return { users, count };
   }
 
-  async one(where: Prisma.UserWhereUniqueInput, include?: Prisma.UserInclude) {
+  async one(
+    where: Prisma.UserWhereUniqueInput,
+    options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
+  ) {
     return this.prisma.user.findUnique({
       where,
-      include: { avatar: true, ...include },
+      ...options,
     });
   }
 
-  async create(data: CreateUserDto) {
+  async create(data: Prisma.UserCreateInput) {
     return await this.prisma.user.create({ data });
   }
 

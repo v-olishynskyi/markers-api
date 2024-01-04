@@ -2,12 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
 import { FilesService } from 'src/models/files/files.service';
 import { Prisma } from '@prisma/client';
+import { CreateMarkerDto, UpdateMarkerDto } from 'src/models/markers/dto';
+import { UsersService } from 'src/models/users/users.service';
+
+type MarkerWithSelectedImages = Prisma.MarkerGetPayload<{
+  select: { images: true };
+}>;
 
 @Injectable()
 export class MarkersService {
   constructor(
     private readonly markersRepository: MarkersRepository,
     private readonly publicFileService: FilesService,
+    private readonly usersService: UsersService,
   ) {}
 
   async getAll() {
@@ -16,16 +23,22 @@ export class MarkersService {
     });
   }
 
-  async findById(id: string, include?: Prisma.MarkerInclude) {
+  async findById(
+    id: string,
+    options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
+  ) {
     const where: Prisma.MarkerWhereUniqueInput = { id };
 
-    const marker = await this.markersRepository.one(where, include);
+    const marker = await this.markersRepository.one(where, options);
 
     return marker;
   }
 
-  async getById(id: string, include?: Prisma.MarkerInclude) {
-    const marker = await this.findById(id, include);
+  async getById(
+    id: string,
+    options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
+  ) {
+    const marker = await this.findById(id, options);
 
     if (!marker) {
       throw new NotFoundException('Marker not found');
@@ -34,13 +47,17 @@ export class MarkersService {
     return marker;
   }
 
-  async create(data: Prisma.MarkerCreateInput) {
+  async create(data: CreateMarkerDto) {
     const images = data?.images;
+
+    const author = await this.usersService.getById(data.author_id);
 
     const createdMarker = await this.markersRepository.create({
       ...data,
       latitude: +data.latitude,
       longitude: +data.longitude,
+      author: { connect: author },
+      images: undefined,
     });
 
     const updateFilesPromises = images?.map(
@@ -50,25 +67,37 @@ export class MarkersService {
         }),
     );
 
-    updateFilesPromises && (await Promise.all(updateFilesPromises));
+    updateFilesPromises?.length && (await Promise.all(updateFilesPromises));
 
     const marker = await this.getById(createdMarker.id);
 
     return marker;
   }
 
-  async update(id: string, data: Prisma.MarkerUpdateInput) {
-    const sourceMarker = await this.getById(id, { images: true });
+  async update(id: string, data: UpdateMarkerDto) {
+    const sourceMarker = (await this.getById(id, {
+      select: {
+        images: true,
+      },
+    })) as unknown as MarkerWithSelectedImages;
 
     const sourceMarkerImagesIds = sourceMarker.images.map(({ id }) => id);
     const updatingMarkerImagesIds = data.images;
-
-    const updatedMarker = await this.markersRepository.update(id, data);
 
     // check if user add new image to marker
     const newImages = updatingMarkerImagesIds.filter(
       (el) => !sourceMarkerImagesIds.includes(el),
     );
+
+    // check if user remove images from marker
+    const deletedImages = sourceMarkerImagesIds.filter(
+      (el) => !updatingMarkerImagesIds.includes(el),
+    );
+
+    const updatedMarker = await this.markersRepository.update(id, {
+      ...data,
+      images: {},
+    });
 
     if (newImages.length) {
       // link new images with updated marker
@@ -79,11 +108,6 @@ export class MarkersService {
         ),
       );
     }
-
-    // check if user remove images from marker
-    const deletedImages = sourceMarkerImagesIds.filter(
-      (el) => !updatingMarkerImagesIds.includes(el),
-    );
 
     if (deletedImages.length) {
       // delete unsued image from db
@@ -98,7 +122,7 @@ export class MarkersService {
   }
 
   async delete(id: string) {
-    await this.getById(id);
+    await this.getById(id, { select: { id: true } }); // check if marker exist
 
     return await this.markersRepository.delete(id);
   }
