@@ -17,16 +17,18 @@ import {
 import { UsersService } from './users.service';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateUserDto, UserDto, UserProfileDto } from './dto/users.dto';
 import { AuthGuard } from 'src/api/auth/auth.guard';
-import { ApiPaginationResponse } from 'src/common/decorators/ApiPaginatedResponse.decorator';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
+import { CreateUserDto, UserDto, UserProfileDto } from 'src/models/users/dto';
+import { ApiPaginationResponse } from 'src/common/decorators';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -35,13 +37,13 @@ import { Response } from 'express';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get all users without pagination' })
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   @Get('/all')
   async getAllUsers() {
     const users = await this.usersService.getAll();
 
-    return users.map((user) => ({ ...user, password: '' }));
+    return users;
   }
 
   @ApiOperation({ summary: 'Get all users with pagination' })
@@ -87,20 +89,20 @@ export class UsersController {
   async getById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.getById(id);
 
-    return { ...user };
+    return user;
   }
 
   @ApiOperation({ summary: 'Create user' })
-  @ApiResponse({ status: HttpStatus.CREATED, type: UserDto })
+  @ApiCreatedResponse({ type: UserDto })
   @Post('/')
   async createUser(@Body() data: CreateUserDto) {
     const user = await this.usersService.create(data);
 
-    return { ...user };
+    return user;
   }
 
   @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
-  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
+  @ApiOkResponse({ type: UserDto })
   @Put('/:id')
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,

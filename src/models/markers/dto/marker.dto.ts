@@ -1,17 +1,21 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsUUID } from 'class-validator';
-import { PublicFileDto } from 'src/models/files/dto/public-file.dto';
+import {
+  ApiPropertyExamplesEnum,
+  ValidationMessagesEnum,
+} from 'src/common/shared/enums';
+import { PublicFileDto } from 'src/models/files/dto';
 
 export class MarkerDto {
   @ApiProperty({
-    example: '5ec7bd8e-ba2b-1287-4909-4d18a4e5747d',
+    example: ApiPropertyExamplesEnum.Uuid,
     description: 'Unique marker id',
   })
   @IsUUID()
   id: string;
 
   @ApiProperty()
-  @IsString({ message: 'must be a string' })
+  @IsString({ message: ValidationMessagesEnum.MustBeString })
   name: string;
 
   @ApiProperty({ nullable: true, default: null })
@@ -25,7 +29,7 @@ export class MarkerDto {
 
   @ApiProperty({
     name: 'is_draft',
-    description: 'Indicates that marker is draft. ',
+    description: 'Indicates that marker is draft.',
     default: false,
     type: Boolean,
   })
@@ -33,7 +37,7 @@ export class MarkerDto {
 
   @ApiProperty({
     name: 'is_hidden',
-    description: 'Indicates that marker is hidden. ',
+    description: 'Indicates that marker is hidden.',
     default: false,
     type: Boolean,
   })
@@ -47,25 +51,5 @@ export class MarkerDto {
   images: PublicFileDto[];
 
   @ApiProperty()
-  user_id: string;
-}
-
-export class CreateMarkerDto extends OmitType(MarkerDto, [
-  'id',
-  'images',
-] as const) {
-  @ApiProperty({
-    name: 'images',
-    description: 'Marker images ids',
-    type: [String],
-  })
-  images: string[];
-}
-export class UpdateMarkerDto extends OmitType(MarkerDto, ['images'] as const) {
-  @ApiProperty({
-    name: 'images',
-    description: 'Marker images ids',
-    type: [String],
-  })
-  images: string[];
+  author_id: string;
 }

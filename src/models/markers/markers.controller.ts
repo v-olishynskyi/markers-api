@@ -12,22 +12,27 @@ import {
 import { MarkersService } from './markers.service';
 import {
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/api/auth/auth.guard';
-import { Prisma } from '@prisma/client';
+import {
+  CreateMarkerDto,
+  MarkerDto,
+  UpdateMarkerDto,
+} from 'src/models/markers/dto';
 
 @ApiTags('Markers')
-// @ApiBearerAuth()
-// @UseGuards(AuthGuard)
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('markers')
 export class MarkersController {
   constructor(private readonly markersService: MarkersService) {}
 
   @ApiOperation({ summary: 'Get markers', description: 'Get all markers' })
-  // @ApiOkResponse({ type: [Marker] })
+  @ApiOkResponse({ type: [MarkerDto] })
   @Get('/')
   async getAll() {
     return await this.markersService.getAll();
@@ -37,16 +42,18 @@ export class MarkersController {
     summary: 'Get marker',
     description: 'Get one marker by id',
   })
-  // @ApiOkResponse({ type: Marker })
+  @ApiOkResponse({ type: MarkerDto })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.markersService.getById(id);
+    return await this.markersService.getById(id, {
+      include: { author: true, images: true },
+    });
   }
 
   @ApiOperation({ summary: 'Create marker', description: 'Create new marker' })
-  // @ApiCreatedResponse({ type: Marker })
+  @ApiCreatedResponse({ type: MarkerDto })
   @Post('/')
-  async createMarker(@Body() body: Prisma.MarkerCreateInput) {
+  async createMarker(@Body() body: CreateMarkerDto) {
     return await this.markersService.create(body);
   }
 
@@ -54,11 +61,11 @@ export class MarkersController {
     summary: 'Update marker',
     description: 'Update marker by id',
   })
-  @ApiOkResponse()
+  @ApiOkResponse({ type: MarkerDto })
   @Put('/:id')
   async updateMarker(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: Prisma.MarkerUpdateInput,
+    @Body() body: UpdateMarkerDto,
   ) {
     return await this.markersService.update(id, body);
   }

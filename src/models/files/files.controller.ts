@@ -13,13 +13,18 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiConsumes,
+  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { FilesService } from './files.service';
-import { Prisma } from '@prisma/client';
-import { FileBodyDto } from 'src/models/files/dto/public-file.dto';
+import {
+  CreateFileDto,
+  FileBodyDto,
+  PublicFileDto,
+} from 'src/models/files/dto';
+
 @ApiTags('Files')
 @Controller('files')
 export class FilesController {
@@ -38,10 +43,11 @@ export class FilesController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
+  @ApiCreatedResponse({ type: PublicFileDto })
   @Post('upload')
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: Prisma.PublicFileCreateInput & FileBodyDto,
+    @Body() body: CreateFileDto & FileBodyDto,
   ) {
     try {
       const response = await this.filesService.create(file.buffer, body);
@@ -55,7 +61,7 @@ export class FilesController {
   @ApiOperation({
     summary: 'Get file by id',
   })
-  // @ApiOkResponse({ type: PublicFile })
+  @ApiOkResponse({ type: PublicFileDto })
   @Get('/:id')
   async findById(@Param('id', ParseUUIDPipe) id: string) {
     return await this.filesService.getById(id);

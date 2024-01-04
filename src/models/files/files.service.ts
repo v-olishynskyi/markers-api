@@ -2,10 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, PublicFile } from '@prisma/client';
 import { S3 } from 'aws-sdk';
-import {
-  FileBodyDto,
-  UpdateFileDto,
-} from 'src/models/files/dto/public-file.dto';
+import { CreateFileDto } from 'src/models/files/dto';
+import { FileBodyDto, UpdateFileDto } from 'src/models/files/dto';
 import { FileTypeEnum } from 'src/models/files/enums';
 import { PublicFileRepository } from 'src/models/files/files.repository';
 import { v4 as uuid } from 'uuid';
@@ -34,10 +32,7 @@ export class FilesService {
     return file;
   }
 
-  async create(
-    buffer: Buffer,
-    body: Prisma.PublicFileCreateInput & FileBodyDto,
-  ) {
+  async create(buffer: Buffer, body: CreateFileDto & FileBodyDto) {
     const s3 = new S3();
 
     const key = `${uuid()}`;

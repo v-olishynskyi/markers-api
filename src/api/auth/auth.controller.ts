@@ -14,13 +14,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import {
-  RefreshTokenResponseDto,
-  SignInDataDto,
-  SignInResponseDto,
-} from './dto/auth.dto';
+import { RefreshTokenResponseDto, SignInDto, SignInResponseDto } from './dto';
 import { Request, Response } from 'express';
-import { CreateUserDto } from 'src/models/users/dto/users.dto';
+import { CreateUserDto } from 'src/models/users/dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,7 +30,7 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.OK, type: SignInResponseDto })
   @Post('/sign-in')
   async signIn(
-    @Body() signInData: SignInDataDto,
+    @Body() signInData: SignInDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
     @Headers('X-Device-Ip') ip: string | null,
