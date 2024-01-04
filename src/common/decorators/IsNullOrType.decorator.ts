@@ -3,20 +3,10 @@ import {
   registerDecorator,
   ValidationArguments,
 } from 'class-validator';
+import { TypesEnum } from 'src/common/shared/enums/types.enum';
 
 export const IsNullOrType =
-  (
-    type:
-      | 'string'
-      | 'number'
-      | 'bigint'
-      | 'boolean'
-      | 'symbol'
-      | 'undefined'
-      | 'object'
-      | 'function',
-    validationOptions?: ValidationOptions,
-  ) =>
+  (type: TypesEnum, validationOptions?: ValidationOptions) =>
   (object: object, propertyName: string) =>
     registerDecorator({
       target: object.constructor,
@@ -25,7 +15,9 @@ export const IsNullOrType =
       constraints: [],
       validator: {
         validate(value: any, options: ValidationArguments) {
-          return value === 'null' || value === null || typeof value === type;
+          return (
+            value === TypesEnum.Null || value === null || typeof value === type
+          );
         },
       },
     });
