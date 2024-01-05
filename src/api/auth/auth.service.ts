@@ -61,8 +61,6 @@ export class AuthService {
         return true;
       }
     } catch (error) {
-      console.log('asdsadas');
-
       return new UnauthorizedException('Expired token', 'expired_token');
     }
   }
