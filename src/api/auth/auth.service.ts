@@ -28,6 +28,8 @@ export class AuthService {
 
     const { id: userSessionId } = await this.userSessionsRepository.create({
       user_id: user.id,
+      // eslint-disable-next-line
+      // @ts-ignore
       device: body.device,
       ip,
       app_version,

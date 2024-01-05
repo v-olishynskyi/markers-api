@@ -7,7 +7,6 @@ import { MarkersModule } from 'src/models/markers/markers.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { GroupsModule } from 'src/models/groups/groups.module';
-import { PrismaService } from 'src/database/prisma.service';
 
 @Module({
   imports: [
