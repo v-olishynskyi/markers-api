@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt } from 'class-validator';
-import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
+import { IsNullOrType } from 'src/common/decorators/is-null-or-type.decorator';
 import { TypesEnum } from 'src/common/shared/enums/types.enum';
 
 export class PaginationMetadata {

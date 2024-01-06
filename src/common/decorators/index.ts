@@ -1,2 +1,2 @@
-export * from './ApiPaginatedResponse.decorator';
-export * from './IsNullOrType.decorator';
+export * from './api-paginated-response.decorator';
+export * from './is-null-or-type.decorator';

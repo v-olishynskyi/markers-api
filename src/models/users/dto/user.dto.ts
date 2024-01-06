@@ -7,7 +7,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { IsNullOrType } from 'src/common/decorators/IsNullOrType.decorator';
+import { IsNullOrType } from 'src/common/decorators/is-null-or-type.decorator';
 import {
   ApiPropertyExamplesEnum,
   TypesEnum,
