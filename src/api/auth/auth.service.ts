@@ -22,7 +22,7 @@ export class AuthService {
   ): Promise<SignInResponseDto> {
     const user = await this.usersService.getByEmail(body.email);
 
-    await AuthService.verifyPassword(body.password, user.password);
+    await this.verifyPassword(body.password, user.password);
 
     const location = '';
 
@@ -98,7 +98,7 @@ export class AuthService {
     }
   }
 
-  private static async verifyPassword(
+  async verifyPassword(
     plainTextPassword: string,
     hashedPassword: string,
   ): Promise<boolean> {
