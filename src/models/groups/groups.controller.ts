@@ -3,11 +3,14 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   ParseUUIDPipe,
   UseGuards,
+  Query,
+  Res,
+  HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import {
@@ -15,11 +18,14 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateGroupDto, GroupDto } from 'src/models/groups/dto';
 import { Prisma } from '@prisma/client';
 import { AuthGuard } from 'src/api/auth/auth.guard';
+import { ApiPaginationResponse } from 'src/common/decorators';
+import { Response } from 'express';
 
 @ApiTags('Groups')
 @ApiBearerAuth()
@@ -30,19 +36,37 @@ export class GroupsController {
 
   @ApiOperation({ summary: 'Get groups', description: 'Get all groups' })
   @ApiOkResponse({ type: [GroupDto] })
-  @Get()
-  findAll() {
+  @Get('/all')
+  getAll() {
     return this.groupsService.getAll();
   }
 
+  @ApiOperation({ summary: 'Get all groups with pagination' })
+  @ApiPaginationResponse(GroupDto)
+  @ApiQuery({ name: 'page', required: true, type: Number })
+  @ApiQuery({ name: 'limit', required: true, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @Get('/paginated')
+  async gettGroupsWithPagination(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search?: string | null,
+  ) {
+    return await this.groupsService.paginated({
+      page,
+      limit,
+      search: search,
+    });
+  }
+
   @ApiOperation({
-    summary: 'Get group by id',
+    summary: 'Get group',
     description: 'Get one group by id',
   })
   @ApiOkResponse({ type: GroupDto })
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groupsService.getById(id, {
+  getById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.groupsService.findById(id, {
       include: { owner: true, members: { select: { user: true } } },
     });
   }
@@ -53,7 +77,7 @@ export class GroupsController {
   })
   @ApiCreatedResponse({ type: GroupDto })
   @Post('/')
-  create(@Body() createGroupDto: CreateGroupDto) {
+  createGroup(@Body() createGroupDto: CreateGroupDto) {
     return this.groupsService.create(createGroupDto);
   }
 
@@ -62,8 +86,8 @@ export class GroupsController {
     description: 'Update group by id',
   })
   @ApiOkResponse({ type: GroupDto })
-  @Patch(':id')
-  update(
+  @Put(':id')
+  updateGroup(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateGroupDto: Prisma.GroupUpdateInput,
   ) {
@@ -74,8 +98,17 @@ export class GroupsController {
     summary: 'Delete group',
     description: 'Delete group by id',
   })
+  @ApiOkResponse()
   @Delete(':id')
-  delete(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groupsService.remove(id);
+  async deleteGroup(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.groupsService.delete(id);
+
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'Group successfuly deleted' })
+      .send();
   }
 }

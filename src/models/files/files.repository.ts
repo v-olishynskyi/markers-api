@@ -6,28 +6,43 @@ import { PrismaService } from 'src/database/prisma.service';
 export class PublicFileRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  all() {
-    return this.prisma.publicFile.findMany();
+  all(
+    params: {
+      where?: Prisma.PublicFileWhereInput;
+      options?: Omit<Prisma.PublicFileFindManyArgs, 'where'>;
+    } = {},
+  ) {
+    const { options, where } = params;
+
+    return this.prisma.publicFile.findMany({ where, ...options });
   }
 
   one(
     where: Prisma.PublicFileWhereUniqueInput,
-    select?: Prisma.PublicFileSelect,
+    options?: Omit<Prisma.PublicFileFindUniqueArgs, 'where'>,
   ) {
-    return this.prisma.publicFile.findUnique({ where, select });
+    return this.prisma.publicFile.findUnique({ where, ...options });
   }
 
-  create(data: Prisma.PublicFileCreateInput, select?: Prisma.PublicFileSelect) {
-    return this.prisma.publicFile.create({ data, select });
+  create(
+    data: Prisma.PublicFileCreateInput,
+    include?: Prisma.PublicFileInclude,
+  ) {
+    return this.prisma.publicFile.create({ data, include });
   }
 
-  async update(id: string, data: Prisma.PublicFileUpdateInput) {
-    const file = await this.prisma.publicFile.update({
-      where: { id },
+  async update(
+    id: string,
+    data: Prisma.PublicFileUpdateInput,
+    include?: Prisma.PublicFileInclude,
+  ) {
+    const where: Prisma.PublicFileWhereUniqueInput = { id };
+
+    return this.prisma.publicFile.update({
+      where,
       data,
+      include,
     });
-
-    return file;
   }
 
   async delete(id: string) {

@@ -10,14 +10,6 @@ import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { Prisma, User } from '@prisma/client';
 import { CreateUserDto } from 'src/models/users/dto';
 
-const fieldsBySearch = [
-  'last_name',
-  'first_name',
-  'middle_name',
-  'email',
-  'username',
-];
-
 type UserProfile = Prisma.UserGetPayload<{
   include: {
     sessions: true;
@@ -47,6 +39,14 @@ export class UsersService {
     const _page = +page === 0 ? 1 : +page;
     const _limit = +limit;
     const offset = _page * _limit;
+
+    const fieldsBySearch = [
+      'last_name',
+      'first_name',
+      'middle_name',
+      'email',
+      'username',
+    ];
 
     const where: Prisma.UserWhereInput = !!search
       ? {
@@ -85,15 +85,10 @@ export class UsersService {
     return response;
   }
 
-  async findById(
-    id: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
-  ) {
+  findById(id: string, options?: Omit<Prisma.UserFindUniqueArgs, 'where'>) {
     const where: Prisma.UserWhereUniqueInput = { id };
 
-    const user = await this.usersRepository.one(where, options);
-
-    return user;
+    return this.usersRepository.one(where, options);
   }
 
   async getById(
@@ -177,7 +172,7 @@ export class UsersService {
   }
 
   async create(data: CreateUserDto) {
-    const user = await this.findByEmail(data.email); // check if user exist
+    const user = await this.findByEmail(data.email); // check if user exist, if not throw error
 
     if (user) {
       throw new ConflictException('User with this email already exist');
@@ -187,13 +182,13 @@ export class UsersService {
   }
 
   async update(id: string, data: Prisma.UserUpdateInput) {
-    await this.getById(id, { select: { id: true } }); // check if user exist
+    await this.getById(id, { select: { id: true } }); // check if user exist, if not throw error
 
     return await this.usersRepository.update(id, data);
   }
 
   async delete(id: string) {
-    await this.getById(id, { select: { id: true } }); // check if user exist
+    await this.getById(id, { select: { id: true } }); // check if user exist, if not throw error
 
     return await this.usersRepository.delete(id);
   }

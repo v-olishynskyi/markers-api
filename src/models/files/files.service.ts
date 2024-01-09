@@ -15,15 +15,20 @@ export class FilesService {
     private readonly publicFileRepository: PublicFileRepository,
   ) {}
 
-  async findById(id: string): Promise<PublicFile | null> {
+  findById(
+    id: string,
+    options?: Omit<Prisma.PublicFileFindUniqueArgs, 'where'>,
+  ): Promise<PublicFile | null> {
     const where: Prisma.PublicFileWhereUniqueInput = { id };
-    const publicFile = await this.publicFileRepository.one(where);
 
-    return publicFile;
+    return this.publicFileRepository.one(where, options);
   }
 
-  async getById(id: string): Promise<PublicFile> {
-    const file = await this.findById(id);
+  async getById(
+    id: string,
+    options?: Omit<Prisma.PublicFileFindUniqueArgs, 'where'>,
+  ): Promise<PublicFile> {
+    const file = await this.findById(id, options);
 
     if (!file) {
       throw new NotFoundException('File not found');

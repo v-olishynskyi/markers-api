@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
 import { FilesService } from 'src/models/files/files.service';
-import { Prisma } from '@prisma/client';
+import { Marker, Prisma } from '@prisma/client';
 import { CreateMarkerDto, UpdateMarkerDto } from 'src/models/markers/dto';
 import { UsersService } from 'src/models/users/users.service';
+import { PaginationParams } from 'src/common/types';
+import { PaginationResponse } from 'src/common/helpers';
 
 type MarkerWithSelectedImages = Prisma.MarkerGetPayload<{
   select: { images: true };
@@ -21,6 +23,50 @@ export class MarkersService {
     return await this.markersRepository.all({
       options: { include: { author: true, images: true } },
     });
+  }
+
+  async paginated({ limit, page, search }: PaginationParams) {
+    const _page = +page === 0 ? 1 : +page;
+    const _limit = +limit;
+    const offset = _page * _limit;
+
+    const fieldsBySearch = ['name'];
+
+    const where: Prisma.MarkerWhereInput = !!search
+      ? {
+          OR: [
+            ...fieldsBySearch.map((field) => ({
+              [field]: { contains: search },
+            })),
+          ],
+        }
+      : {};
+
+    const { count, markers } = await this.markersRepository.paginated({
+      skip: offset,
+      take: _limit,
+      where,
+      include: { author: true, images: true },
+    });
+
+    const last_page = Math.floor(count / _limit);
+    const next_page = _page === last_page ? null : Number(_page + 1);
+    const prev_page = _page === 1 ? null : _page - 1;
+
+    const response: PaginationResponse<Marker> = {
+      data: markers,
+      meta: {
+        current_page: +_page,
+        last_page,
+        per_page: +_limit,
+        total: count,
+        next_page,
+        prev_page,
+        search: search || null,
+      },
+    };
+
+    return response;
   }
 
   async findById(
@@ -122,7 +168,7 @@ export class MarkersService {
   }
 
   async delete(id: string) {
-    await this.getById(id, { select: { id: true } }); // check if marker exist
+    await this.getById(id, { select: { id: true } }); // check if marker exist, if not throw error
 
     return await this.markersRepository.delete(id);
   }

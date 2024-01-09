@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma.service';
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async all(
+  all(
     params: {
       where?: Prisma.UserWhereInput;
       options?: Omit<Prisma.UserFindManyArgs, 'where'>;
@@ -37,7 +37,7 @@ export class UsersRepository {
     return { users, count };
   }
 
-  async one(
+  one(
     where: Prisma.UserWhereUniqueInput,
     options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
   ) {
@@ -47,17 +47,25 @@ export class UsersRepository {
     });
   }
 
-  async create(data: Prisma.UserCreateInput) {
-    return await this.prisma.user.create({ data });
+  create(data: Prisma.UserCreateInput, include?: Prisma.UserInclude) {
+    return this.prisma.user.create({ data, include });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput) {
+  update(
+    id: string,
+    data: Prisma.UserUpdateInput,
+    include?: Prisma.UserInclude,
+  ) {
     const where: Prisma.UserWhereUniqueInput = { id };
 
-    return this.prisma.user.update({ where, data, include: { avatar: true } });
+    return this.prisma.user.update({
+      where,
+      data,
+      include: { avatar: true, ...include },
+    });
   }
 
-  async delete(id: string) {
+  delete(id: string) {
     const where: Prisma.UserWhereUniqueInput = { id };
 
     return this.prisma.user.delete({ where });

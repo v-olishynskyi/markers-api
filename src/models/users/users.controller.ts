@@ -41,9 +41,7 @@ export class UsersController {
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
   @Get('/all')
   async getAllUsers() {
-    const users = await this.usersService.getAll();
-
-    return users;
+    return this.usersService.getAll();
   }
 
   @ApiOperation({ summary: 'Get all users with pagination' })
@@ -51,8 +49,8 @@ export class UsersController {
   @ApiQuery({ name: 'page', required: true, type: Number })
   @ApiQuery({ name: 'limit', required: true, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
-  @Get('/')
-  async getAllUsersByPagination(
+  @Get('/paginated')
+  async getAUsersWithPagination(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('search') search?: string | null,
@@ -84,10 +82,10 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Get user', description: 'Get user by id' })
-  @ApiResponse({ status: HttpStatus.OK, type: UserDto })
+  @ApiOkResponse({ type: UserDto })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
-    const user = await this.usersService.getById(id);
+    const user = await this.usersService.findById(id);
 
     return user;
   }
@@ -96,9 +94,7 @@ export class UsersController {
   @ApiCreatedResponse({ type: UserDto })
   @Post('/')
   async createUser(@Body() data: CreateUserDto) {
-    const user = await this.usersService.create(data);
-
-    return user;
+    return this.usersService.create(data);
   }
 
   @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
@@ -108,13 +104,11 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: Prisma.UserUpdateInput,
   ) {
-    const user = await this.usersService.update(id, data);
-
-    return { ...user };
+    return this.usersService.update(id, data);
   }
 
   @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })
-  @ApiResponse({ status: HttpStatus.OK })
+  @ApiOkResponse()
   @Delete('/:id')
   async deleteUser(
     @Param('id', ParseUUIDPipe) id: string,

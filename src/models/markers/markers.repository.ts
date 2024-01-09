@@ -17,6 +17,23 @@ export class MarkersRepository {
     return this.prisma.marker.findMany({ where, ...options });
   }
 
+  async paginated(params: Prisma.MarkerFindManyArgs) {
+    const markersQuery = this.prisma.marker.findMany({
+      ...params,
+    });
+
+    const countQuery = this.prisma.marker.count({
+      where: params.where,
+    });
+
+    const [markers, count] = await this.prisma.$transaction([
+      markersQuery,
+      countQuery,
+    ]);
+
+    return { markers, count };
+  }
+
   async one(
     where: Prisma.MarkerWhereUniqueInput,
     options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
@@ -27,17 +44,21 @@ export class MarkersRepository {
     });
   }
 
-  async create(data: Prisma.MarkerCreateInput) {
-    return this.prisma.marker.create({ data });
+  async create(data: Prisma.MarkerCreateInput, include?: Prisma.MarkerInclude) {
+    return this.prisma.marker.create({ data, include });
   }
 
-  async update(id: string, data: Prisma.MarkerUpdateInput) {
+  async update(
+    id: string,
+    data: Prisma.MarkerUpdateInput,
+    include?: Prisma.MarkerInclude,
+  ) {
     const where: Prisma.MarkerWhereUniqueInput = { id };
 
     return this.prisma.marker.update({
       where,
       data,
-      include: { author: true, images: true },
+      include: { author: true, images: true, ...include },
     });
   }
 

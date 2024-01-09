@@ -3,10 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { MarkersService } from './markers.service';
@@ -15,6 +18,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/api/auth/auth.guard';
@@ -23,6 +27,8 @@ import {
   MarkerDto,
   UpdateMarkerDto,
 } from 'src/models/markers/dto';
+import { ApiPaginationResponse } from 'src/common/decorators';
+import { Response } from 'express';
 
 @ApiTags('Markers')
 @ApiBearerAuth()
@@ -33,9 +39,27 @@ export class MarkersController {
 
   @ApiOperation({ summary: 'Get markers', description: 'Get all markers' })
   @ApiOkResponse({ type: [MarkerDto] })
-  @Get('/')
+  @Get('/all')
   async getAll() {
     return await this.markersService.getAll();
+  }
+
+  @ApiOperation({ summary: 'Get all markers with pagination' })
+  @ApiPaginationResponse(MarkerDto)
+  @ApiQuery({ name: 'page', required: true, type: Number })
+  @ApiQuery({ name: 'limit', required: true, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @Get('/paginated')
+  async getMarkerWithPagination(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('search') search?: string | null,
+  ) {
+    return await this.markersService.paginated({
+      page,
+      limit,
+      search: search,
+    });
   }
 
   @ApiOperation({
@@ -45,7 +69,7 @@ export class MarkersController {
   @ApiOkResponse({ type: MarkerDto })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.markersService.getById(id, {
+    return this.markersService.findById(id, {
       include: { author: true, images: true },
     });
   }
@@ -54,7 +78,7 @@ export class MarkersController {
   @ApiCreatedResponse({ type: MarkerDto })
   @Post('/')
   async createMarker(@Body() body: CreateMarkerDto) {
-    return await this.markersService.create(body);
+    return this.markersService.create(body);
   }
 
   @ApiOperation({
@@ -67,7 +91,7 @@ export class MarkersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateMarkerDto,
   ) {
-    return await this.markersService.update(id, body);
+    return this.markersService.update(id, body);
   }
 
   @ApiOperation({
@@ -76,7 +100,15 @@ export class MarkersController {
   })
   @ApiOkResponse()
   @Delete('/:id')
-  async deleteMarker(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.markersService.delete(id);
+  async deleteMarker(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.markersService.delete(id);
+
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'Marker successfuly deleted' })
+      .send();
   }
 }
