@@ -48,6 +48,7 @@ model Group {
   name        String          @db.VarChar(255)
   owner_id    String          @db.Uuid
   owner       User            @relation(fields: [owner_id], references: [id])
+  avatar      PublicFile?
   created_at  DateTime        @default(now())
   updated_at  DateTime        @updatedAt
   members     GroupsOnUsers[]
@@ -86,6 +87,8 @@ model PublicFile {
   user       User?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   marker_id  String?  @db.Uuid
   marker     Marker?  @relation(fields: [marker_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  group_id   String?  @unique @db.Uuid
+  group      Group?   @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   key        String?  @db.VarChar(255)
   url        String?  @db.VarChar(255)
   created_at DateTime @default(now())
