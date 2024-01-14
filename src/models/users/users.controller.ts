@@ -12,11 +12,14 @@ import {
   Query,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -27,8 +30,14 @@ import {
 import { AuthGuard } from 'src/api/auth/auth.guard';
 import { Prisma } from '@prisma/client';
 import { Response } from 'express';
-import { CreateUserDto, UserDto, UserProfileDto } from 'src/models/users/dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserDto,
+  UserProfileDto,
+} from 'src/models/users/dto';
 import { ApiPaginationResponse } from 'src/common/decorators';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -85,7 +94,9 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
-    const user = await this.usersService.findById(id);
+    const user = await this.usersService.findById(id, {
+      include: { avatar: true },
+    });
 
     return user;
   }
@@ -97,14 +108,19 @@ export class UsersController {
     return this.usersService.create(data);
   }
 
-  @ApiOperation({ summary: 'Update user', description: 'Update user by id' })
+  @ApiOperation({
+    summary: 'Update user',
+    description: 'Update user by id',
+  })
   @ApiOkResponse({ type: UserDto })
+  @UseInterceptors(FileInterceptor('file'))
   @Put('/:id')
   async updateUser(
+    @Body() data: UpdateUserDto,
+    @UploadedFile() avatar: Express.Multer.File,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() data: Prisma.UserUpdateInput,
   ) {
-    return this.usersService.update(id, data);
+    return this.usersService.update(id, data, avatar);
   }
 
   @ApiOperation({ summary: 'Delete user', description: 'Delete user by id' })

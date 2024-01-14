@@ -30,6 +30,15 @@ import {
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
+  @ApiOperation({
+    summary: 'Gell all files',
+  })
+  @ApiOkResponse({ type: [PublicFileDto] })
+  @Get('/all')
+  getAll() {
+    return this.filesService.all();
+  }
+
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -47,10 +56,13 @@ export class FilesController {
   @Post('upload')
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: CreateFileDto & FileBodyDto,
+    @Body() body: CreateFileDto,
   ) {
     try {
-      const response = await this.filesService.create(file.buffer, body);
+      const response = await this.filesService.create({
+        file,
+        entity: body.entity,
+      });
 
       return response;
     } catch (error) {

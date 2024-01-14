@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
-export class PublicFileRepository {
+export class FilesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   all(

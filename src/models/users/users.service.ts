@@ -9,6 +9,9 @@ import { PaginationResponse } from 'src/common/helpers';
 import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { Prisma, User } from '@prisma/client';
 import { CreateUserDto } from 'src/models/users/dto';
+import { FilesService } from 'src/models/files/files.service';
+import { FileTypeEnum } from 'src/models/files/enums';
+import { PrismaService } from 'src/database/prisma.service';
 
 type UserProfile = Prisma.UserGetPayload<{
   include: {
@@ -25,6 +28,8 @@ export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly userSessionsRepository: UserSessionsRepository,
+    private readonly filesService: FilesService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getAll() {
@@ -181,10 +186,54 @@ export class UsersService {
     return await this.usersRepository.create(data);
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput) {
-    await this.getById(id, { select: { id: true } }); // check if user exist, if not throw error
+  async update(
+    id: string,
+    data: Prisma.UserUpdateInput,
+    avatar: Express.Multer.File,
+  ) {
+    // check if user exist, if not throw error
+    const user = (await this.getById(id, {
+      select: { id: true, avatar: { select: { id: true } } },
+    })) as unknown as { id: string; avatar: { id: string } };
 
-    return await this.usersRepository.update(id, data);
+    let userData: Prisma.UserUpdateInput = { ...data };
+
+    return this.prisma.$transaction(async (trn) => {
+      if (avatar) {
+        const oldAvatars = await this.filesService.all({
+          where: { user_id: id },
+          options: { select: { id: true } },
+        });
+
+        if (oldAvatars.length) {
+          await Promise.all(
+            oldAvatars.map(
+              async ({ id }) => await this.filesService.delete(id),
+            ),
+          );
+        }
+        const newAvatar = await this.filesService.create({
+          file: avatar,
+          entity: { id, type: FileTypeEnum.USER_AVATAR },
+        });
+
+        userData = {
+          ...userData,
+          avatar: {
+            connect: { ...newAvatar, user_id: id, group_id: undefined },
+          },
+        };
+
+        // if (user.avatar?.id) {
+        //   userData = {
+        //     ...userData,
+        //     avatar: { ...userData.avatar, delete: { id: user.avatar.id } },
+        //   };
+        // }
+      }
+
+      return await this.usersRepository.update(id, userData);
+    });
   }
 
   async delete(id: string) {

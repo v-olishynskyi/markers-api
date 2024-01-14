@@ -1,4 +1,5 @@
 export enum FileTypeEnum {
-  AVATAR = 'avatar',
-  MARKER_IMAGE = 'marker_image',
+  USER_AVATAR = 'user',
+  MARKER_IMAGE = 'marker',
+  GROUP_AVATAR = 'group',
 }
