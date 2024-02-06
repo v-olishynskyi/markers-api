@@ -7,12 +7,6 @@ const groupsOnUsersJson = require('./seed.data/group-users.json');
 
 const client = new PrismaClient();
 
-console.log('usersJson', usersJson.length);
-console.log('markersJson', markersJson.length);
-console.log('avatarsJson', avatarsJson.length);
-console.log('groupsJson', groupsJson);
-console.log('groupsOnUsersJson', groupsOnUsersJson.length);
-
 async function users(prisma: PrismaClient) {
   return Promise.all(
     usersJson.map(async (item) =>
