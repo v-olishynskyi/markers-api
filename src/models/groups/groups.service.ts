@@ -35,7 +35,7 @@ export class GroupsService {
   async paginated({ limit, page, search }: PaginationParams) {
     const _page = +page === 0 ? 1 : +page;
     const _limit = +limit;
-    const offset = _page * _limit;
+    const offset = _page === 1 ? 0 : _page * _limit;
 
     const fieldsBySearch = ['name'];
 
@@ -53,7 +53,7 @@ export class GroupsService {
       skip: offset,
       take: _limit,
       where,
-      include: { members: true, owner: true },
+      include: { members: true, owner: true, avatar: true },
     });
 
     const last_page = Math.floor(count / _limit);

@@ -65,6 +65,6 @@ export class MarkersRepository {
   async delete(id: string) {
     const where: Prisma.MarkerWhereUniqueInput = { id };
 
-    return this.prisma.marker.delete({ where });
+    await this.prisma.marker.delete({ where });
   }
 }

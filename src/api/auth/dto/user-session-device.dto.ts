@@ -1,8 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UserSessionDeviceDto {
-  @ApiProperty({ name: 'id', example: 'ABCDEF12-34567890ABCDEF12' })
-  id: string;
+  @ApiPropertyOptional({ name: 'id', example: 'ABCDEF12-34567890ABCDEF12' })
+  id?: string | undefined;
 
   @ApiProperty({ name: 'name', example: 'iPhone' })
   name: string;

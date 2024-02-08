@@ -1,10 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, Length } from 'class-validator';
 import { UserSessionDeviceDto } from 'src/api/auth/dto';
-import {
-  ApiPropertyExamplesEnum,
-  ValidationMessagesEnum,
-} from 'src/common/shared/enums';
+import { ValidationMessagesEnum } from 'src/common/shared/enums';
 
 export class SignInDto {
   @ApiProperty({ name: 'email', example: 'email@email.com' })
