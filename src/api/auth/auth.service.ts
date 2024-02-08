@@ -6,6 +6,7 @@ import { UserSessionsRepository } from 'src/api/auth/user-sessions.repository';
 import { ACCESS_TOKEN_EXPIRED_SEC } from 'src/common/constants';
 import { SignInDto, SignInResponseDto } from 'src/api/auth/dto';
 import { CreateUserDto } from 'src/models/users/dto';
+import { hashPassword } from 'src/common/helpers';
 
 @Injectable()
 export class AuthService {
@@ -50,6 +51,8 @@ export class AuthService {
   }
 
   async signUp(registrationData: CreateUserDto) {
+    const hashedPassword = await hashPassword(registrationData.password);
+    registrationData.password = hashedPassword;
     return await this.usersService.create(registrationData);
   }
 
