@@ -11,6 +11,7 @@ import {
   Res,
   HttpStatus,
   Put,
+  Req,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import {
@@ -21,11 +22,19 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateGroupDto, GroupDto } from 'src/models/groups/dto';
+import {
+  CreateGroupDto,
+  GroupDto,
+  JoinOrLeaveGroupDto,
+} from 'src/models/groups/dto';
 import { Prisma } from '@prisma/client';
 import { AuthGuard } from 'src/api/auth/auth.guard';
-import { ApiPaginationResponse } from 'src/common/decorators';
 import { Response } from 'express';
+import { GroupsFilterBy } from 'src/models/groups/enums';
+import {
+  ApiMessageResponse,
+  ApiPaginationResponse,
+} from 'src/common/decorators';
 
 @ApiTags('Groups')
 @ApiBearerAuth()
@@ -35,28 +44,27 @@ export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
   @ApiOperation({ summary: 'Get groups', description: 'Get all groups' })
-  @ApiOkResponse({ type: [GroupDto] })
-  @Get('/all')
-  getAll() {
-    return this.groupsService.getAll();
+  @ApiPaginationResponse(GroupDto)
+  @ApiQuery({ name: 'filter_by', required: false, enum: GroupsFilterBy })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @Get('/')
+  paginated(@Req() request: Request) {
+    const userId = request['userId'];
+    const params = request['query'];
+
+    return this.groupsService.paginated(userId, params);
   }
 
-  @ApiOperation({ summary: 'Get all groups with pagination' })
-  @ApiPaginationResponse(GroupDto)
-  @ApiQuery({ name: 'page', required: true, type: Number })
-  @ApiQuery({ name: 'limit', required: true, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
-  @Get('/paginated')
-  async gettGroupsWithPagination(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('search') search?: string | null,
-  ) {
-    return await this.groupsService.paginated({
-      page,
-      limit,
-      search: search,
-    });
+  @ApiOperation({ summary: 'Get all groups', description: 'Get all groups' })
+  @ApiOkResponse({ type: [GroupDto] })
+  @Get('/get-all')
+  all(@Req() request: Request) {
+    const userId = request['userId'];
+    const params = request['query'];
+
+    return this.groupsService.getAll(userId, params);
   }
 
   @ApiOperation({
@@ -66,9 +74,7 @@ export class GroupsController {
   @ApiOkResponse({ type: GroupDto })
   @Get(':id')
   getById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groupsService.findById(id, {
-      include: { owner: true, members: { select: { user: true } } },
-    });
+    return this.groupsService.findById(id);
   }
 
   @ApiOperation({
@@ -98,7 +104,7 @@ export class GroupsController {
     summary: 'Delete group',
     description: 'Delete group by id',
   })
-  @ApiOkResponse()
+  @ApiMessageResponse()
   @Delete(':id')
   async deleteGroup(
     @Param('id', ParseUUIDPipe) id: string,
@@ -106,9 +112,40 @@ export class GroupsController {
   ) {
     await this.groupsService.delete(id);
 
+    return res.status(HttpStatus.OK).json({ message: 'Групу видалено' }).send();
+  }
+
+  @ApiOperation({ summary: 'Add member', description: 'Add member to group' })
+  @ApiMessageResponse()
+  @Post(`:group_id/join`)
+  async join(
+    @Param('group_id', ParseUUIDPipe) groupId: string,
+    @Body() body: JoinOrLeaveGroupDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.groupsService.addMember(body.user_id, groupId);
     return res
       .status(HttpStatus.OK)
-      .json({ message: 'Group successfuly deleted' })
+      .json({ message: 'Користувача додано до групи' })
+      .send();
+  }
+
+  @ApiOperation({
+    summary: 'Remove member',
+    description: 'Remove member from group',
+  })
+  @ApiMessageResponse()
+  @Post(`:group_id/leave`)
+  async leave(
+    @Param('group_id', ParseUUIDPipe) groupId: string,
+    @Body() body: JoinOrLeaveGroupDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.groupsService.removeMember(body.user_id, groupId);
+
+    return res
+      .status(HttpStatus.OK)
+      .json({ message: 'Користувача видалено з групи' })
       .send();
   }
 }

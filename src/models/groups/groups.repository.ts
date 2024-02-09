@@ -13,27 +13,11 @@ export class GroupsRepository {
     } = {},
   ) {
     const { options, where } = params;
+
     return this.prisma.group.findMany({
       where,
       ...options,
     });
-  }
-
-  async paginated(params: Prisma.GroupFindManyArgs) {
-    const groupsQuery = this.prisma.group.findMany({
-      ...params,
-    });
-
-    const countQuery = this.prisma.group.count({
-      where: params.where,
-    });
-
-    const [groups, count] = await this.prisma.$transaction([
-      groupsQuery,
-      countQuery,
-    ]);
-
-    return { groups, count };
   }
 
   one(
