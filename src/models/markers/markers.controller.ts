@@ -9,8 +9,11 @@ import {
   Post,
   Put,
   Query,
+  Req,
   Res,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { MarkersService } from './markers.service';
 import {
@@ -29,6 +32,9 @@ import {
 } from 'src/models/markers/dto';
 import { ApiPaginationResponse } from 'src/common/decorators';
 import { Response } from 'express';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import FormDataToBodyInterceptor from './formdata-to-body.interceptor';
+import { MarkersFilterBy } from './types';
 
 @ApiTags('Markers')
 @ApiBearerAuth()
@@ -37,29 +43,39 @@ import { Response } from 'express';
 export class MarkersController {
   constructor(private readonly markersService: MarkersService) {}
 
+  @ApiOperation({ summary: 'Get markers', description: 'Get all user markers' })
+  @ApiOkResponse({ type: [MarkerDto] })
+  @ApiQuery({ name: 'user_id', required: true, type: String })
+  @Get('/markers-by-user')
+  async getAllByUser(@Query('user_id') user_id: string) {
+    const markers = await this.markersService.getAll(user_id, {
+      filter_by: MarkersFilterBy.By_User,
+    });
+    return markers;
+  }
+
   @ApiOperation({ summary: 'Get markers', description: 'Get all markers' })
   @ApiOkResponse({ type: [MarkerDto] })
-  @Get('/all')
-  async getAll() {
-    return await this.markersService.getAll();
+  @Get('/get-all')
+  getAll(@Req() request: Request) {
+    const userId = request['userId'];
+    const params = request['query'];
+
+    return this.markersService.getAll(userId, params);
   }
 
   @ApiOperation({ summary: 'Get all markers with pagination' })
   @ApiPaginationResponse(MarkerDto)
-  @ApiQuery({ name: 'page', required: true, type: Number })
-  @ApiQuery({ name: 'limit', required: true, type: Number })
+  @ApiQuery({ name: 'filter_by', required: false, enum: MarkersFilterBy })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
-  @Get('/paginated')
-  async getMarkerWithPagination(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('search') search?: string | null,
-  ) {
-    return await this.markersService.paginated({
-      page,
-      limit,
-      search: search,
-    });
+  @Get('/')
+  getMarkerWithPagination(@Req() request: Request) {
+    const userId = request['userId'];
+    const params = request['query'];
+
+    return this.markersService.paginated(userId, params);
   }
 
   @ApiOperation({
@@ -68,17 +84,22 @@ export class MarkersController {
   })
   @ApiOkResponse({ type: MarkerDto })
   @Get('/:id')
-  async getById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.markersService.findById(id, {
-      include: { author: true, images: true },
-    });
+  getById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.markersService.findById(id);
   }
 
   @ApiOperation({ summary: 'Create marker', description: 'Create new marker' })
   @ApiCreatedResponse({ type: MarkerDto })
+  @UseInterceptors(
+    FilesInterceptor('images'),
+    FormDataToBodyInterceptor([{ fieldName: 'marker', extractToBody: true }]),
+  )
   @Post('/')
-  async createMarker(@Body() body: CreateMarkerDto) {
-    return this.markersService.create(body);
+  createMarker(
+    @Body() body: CreateMarkerDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+  ) {
+    return this.markersService.create(body, files);
   }
 
   @ApiOperation({
@@ -86,12 +107,17 @@ export class MarkersController {
     description: 'Update marker by id',
   })
   @ApiOkResponse({ type: MarkerDto })
+  @UseInterceptors(
+    FilesInterceptor('images'),
+    FormDataToBodyInterceptor([{ fieldName: 'marker', extractToBody: true }]),
+  )
   @Put('/:id')
-  async updateMarker(
+  updateMarker(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateMarkerDto,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    return this.markersService.update(id, body);
+    return this.markersService.update(id, body, files);
   }
 
   @ApiOperation({

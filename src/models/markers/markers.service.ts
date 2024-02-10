@@ -1,15 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
 import { FilesService } from 'src/models/files/files.service';
-import { Marker, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { CreateMarkerDto, UpdateMarkerDto } from 'src/models/markers/dto';
 import { UsersService } from 'src/models/users/users.service';
-import { PaginationParams } from 'src/common/types';
-import { PaginationResponse } from 'src/common/helpers';
+import { PrismaService } from 'src/database/prisma.service';
+import { FileTypeEnum } from 'src/models/files/enums';
+import { paginator } from 'src/common/helpers';
+import { GetMarkersRequestParams, MarkersFilterBy } from './types';
 
 type MarkerWithSelectedImages = Prisma.MarkerGetPayload<{
   select: { images: true };
 }>;
+
+const fieldsBySearch = ['name'];
+
+const markerInclude: Prisma.MarkerInclude = {
+  author: {
+    include: { avatar: true },
+  },
+  images: true,
+};
 
 @Injectable()
 export class MarkersService {
@@ -17,54 +28,66 @@ export class MarkersService {
     private readonly markersRepository: MarkersRepository,
     private readonly publicFileService: FilesService,
     private readonly usersService: UsersService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  async getAll() {
+  async getAll(
+    userId: string,
+    params: Omit<GetMarkersRequestParams, 'limit' | 'page'>,
+  ) {
+    const { filter_by = MarkersFilterBy.All, search } = params;
+
+    let where: Prisma.MarkerWhereInput = {};
+
+    if (search) {
+      where = {
+        OR: [
+          ...fieldsBySearch.map((field) => ({
+            [field]: { contains: search },
+          })),
+        ],
+      };
+    }
+
+    if (
+      filter_by === MarkersFilterBy.My_Markers ||
+      filter_by === MarkersFilterBy.By_User
+    ) {
+      where = { ...where, AND: { author_id: { equals: userId } } };
+    }
+
     return await this.markersRepository.all({
-      options: { include: { author: true, images: true } },
+      where,
+      options: { include: markerInclude },
     });
   }
 
-  async paginated({ limit, page, search }: PaginationParams) {
-    const _page = +page === 0 ? 1 : +page;
-    const _limit = +limit;
-    const offset = _page * _limit;
+  async paginated(userId: string, params: Required<GetMarkersRequestParams>) {
+    const { limit, page, search, filter_by } = params;
 
-    const fieldsBySearch = ['name'];
+    let where: Prisma.MarkerWhereInput = {};
 
-    const where: Prisma.MarkerWhereInput = !!search
-      ? {
-          OR: [
-            ...fieldsBySearch.map((field) => ({
-              [field]: { contains: search },
-            })),
-          ],
-        }
-      : {};
+    if (search) {
+      where = {
+        OR: [
+          ...fieldsBySearch.map((field) => ({
+            [field]: { contains: search },
+          })),
+        ],
+      };
+    }
 
-    const { count, markers } = await this.markersRepository.paginated({
-      skip: offset,
-      take: _limit,
-      where,
-      include: { author: true, images: true },
-    });
+    if (
+      filter_by === MarkersFilterBy.My_Markers ||
+      filter_by === MarkersFilterBy.By_User
+    ) {
+      where = { ...where, AND: { author_id: { equals: userId } } };
+    }
 
-    const last_page = Math.floor(count / _limit);
-    const next_page = _page === last_page ? null : Number(_page + 1);
-    const prev_page = _page === 1 ? null : _page - 1;
-
-    const response: PaginationResponse<Marker> = {
-      data: markers,
-      meta: {
-        current_page: +_page,
-        last_page,
-        per_page: +_limit,
-        total: count,
-        next_page,
-        prev_page,
-        search: search || null,
-      },
-    };
+    const response = await paginator({ page, limit, search })(
+      this.prisma.marker,
+      { where, include: markerInclude },
+    );
 
     return response;
   }
@@ -82,7 +105,9 @@ export class MarkersService {
 
   async getById(
     id: string,
-    options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
+    options: Omit<Prisma.MarkerFindUniqueArgs, 'where'> = {
+      include: markerInclude,
+    },
   ) {
     const marker = await this.findById(id, options);
 
@@ -93,34 +118,46 @@ export class MarkersService {
     return marker;
   }
 
-  async create(data: CreateMarkerDto) {
-    const images = data?.images;
-
+  async create(data: CreateMarkerDto, images: Array<Express.Multer.File>) {
     const author = await this.usersService.getById(data.author_id);
 
-    const createdMarker = await this.markersRepository.create({
-      ...data,
-      latitude: +data.latitude,
-      longitude: +data.longitude,
-      author: { connect: author },
-      images: undefined,
-    });
+    return this.prisma.$transaction(
+      async () => {
+        const markerData: Prisma.MarkerCreateInput = {
+          name: data.name,
+          is_draft: data.is_draft,
+          is_hidden: data.is_hidden,
+          latitude: +data.latitude,
+          longitude: +data.longitude,
+          author: { connect: author },
+          images: undefined,
+        };
 
-    const updateFilesPromises = images?.map(
-      async (id) =>
-        await this.publicFileService.update(id, {
-          marker_id: createdMarker.id,
-        }),
+        const createdMarker = await this.markersRepository.create(markerData);
+
+        const imagesPromises = images.map(
+          async (file) =>
+            await this.publicFileService.create({
+              file,
+              entity: { id: createdMarker.id, type: FileTypeEnum.MARKER_IMAGE },
+            }),
+        );
+
+        await Promise.all(imagesPromises);
+
+        const marker = await this.getById(createdMarker.id);
+
+        return marker;
+      },
+      { maxWait: 1000 * 30 },
     );
-
-    updateFilesPromises?.length && (await Promise.all(updateFilesPromises));
-
-    const marker = await this.getById(createdMarker.id);
-
-    return marker;
   }
 
-  async update(id: string, data: UpdateMarkerDto) {
+  async update(
+    id: string,
+    data: UpdateMarkerDto,
+    images: Array<Express.Multer.File>,
+  ) {
     const sourceMarker = (await this.getById(id, {
       select: {
         images: true,
@@ -168,8 +205,15 @@ export class MarkersService {
   }
 
   async delete(id: string) {
-    await this.getById(id, { select: { id: true } }); // check if marker exist, if not throw error
+    const marker = (await this.getById(id, {
+      select: { id: true, images: { select: { id: true } } },
+    })) as unknown as Prisma.MarkerGetPayload<{
+      select: { id: true; images: { select: { id: true } } };
+    }>; // check if marker exist, if not throw error
 
+    const imagesThatShouldBeDeleted = marker.images.map(({ id }) => id);
+
+    await this.publicFileService.deleteMany(imagesThatShouldBeDeleted);
     return await this.markersRepository.delete(id);
   }
 }

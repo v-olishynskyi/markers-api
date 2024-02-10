@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { GroupsRepository } from 'src/models/groups/groups.repository';
 import { Prisma } from '@prisma/client';
 import { CreateGroupDto, GroupDto } from 'src/models/groups/dto';
@@ -24,6 +28,37 @@ const groupInclude: Prisma.GroupInclude = {
 
 const fieldsBySearch = ['name'];
 
+const makeGroupWhereInput = (params: {
+  filter_by: GroupsFilterBy;
+  userId: string;
+  search?: string;
+}) => {
+  const { filter_by, userId, search } = params;
+  let where: Prisma.GroupWhereInput = {};
+
+  if (search) {
+    where = {
+      OR: [
+        ...fieldsBySearch.map((field) => ({
+          [field]: { contains: search },
+        })),
+      ],
+    };
+  }
+
+  if (
+    filter_by === GroupsFilterBy.By_User ||
+    filter_by === GroupsFilterBy.My_Groups
+  ) {
+    where = {
+      ...where,
+      AND: { members: { some: { user_id: { equals: userId } } } },
+    };
+  }
+
+  return where;
+};
+
 @Injectable()
 export class GroupsService {
   constructor(
@@ -38,50 +73,32 @@ export class GroupsService {
   ) {
     const { filter_by = GroupsFilterBy.All, search } = params;
 
-    let where: Prisma.GroupWhereInput = {};
+    const where = makeGroupWhereInput({ filter_by, userId, search });
 
-    if (search) {
-      where = {
-        OR: [
-          ...fieldsBySearch.map((field) => ({
-            [field]: { contains: search },
-          })),
-        ],
-      };
-    }
-
-    if (filter_by === GroupsFilterBy.My_Groups) {
-      where = { ...where, AND: { owner_id: { equals: userId } } };
-    }
-
-    const groups = await this.groupsRepository.all({
+    const groups = (await this.groupsRepository.all({
       where,
       options: {
         include: groupInclude,
       },
+    })) as unknown as GroupIncludeType[];
+
+    const transformedGroups: GroupDto[] = groups.map((group) => {
+      const groupWithTransformedMembers =
+        GroupsService.checkIfUserAlreadyGroupMember(
+          userId,
+          GroupsService.transformGroupMembers(group),
+        );
+
+      return groupWithTransformedMembers;
     });
 
-    return groups;
+    return transformedGroups;
   }
 
   async paginated(userId: string, params: Required<GetGroupsRequestParams>) {
     const { filter_by, limit, page, search } = params;
 
-    let where: Prisma.GroupWhereInput = {};
-
-    if (!!search) {
-      where = {
-        OR: [
-          ...fieldsBySearch.map((field) => ({
-            [field]: { contains: search },
-          })),
-        ],
-      };
-    }
-
-    if (filter_by === GroupsFilterBy.My_Groups) {
-      where = { ...where, AND: { owner_id: { equals: userId } } };
-    }
+    const where = makeGroupWhereInput({ filter_by, userId, search });
 
     const response = await paginator<GroupIncludeType>({ limit, page })(
       this.prisma.group,
@@ -109,12 +126,25 @@ export class GroupsService {
     options: Omit<Prisma.GroupFindUniqueArgs, 'where'> = {
       include: groupInclude,
     },
+    userId?: string,
   ) {
     const where: Prisma.GroupWhereUniqueInput = { id };
 
-    const group = await this.groupsRepository.one(where, options);
+    const group = (await this.groupsRepository.one(
+      where,
+      options,
+    )) as unknown as GroupIncludeType;
 
-    return group;
+    if (!userId) {
+      return group;
+    }
+
+    const transformedGroup = GroupsService.checkIfUserAlreadyGroupMember(
+      userId,
+      GroupsService.transformGroupMembers(group),
+    );
+
+    return transformedGroup;
   }
 
   async getById(
@@ -122,8 +152,9 @@ export class GroupsService {
     options: Omit<Prisma.GroupFindUniqueArgs, 'where'> = {
       include: groupInclude,
     },
+    userId?: string,
   ) {
-    const group = await this.findById(id, options);
+    const group = await this.findById(id, options, userId);
 
     if (!group) {
       throw new NotFoundException('Group not found');
@@ -164,6 +195,12 @@ export class GroupsService {
   async removeMember(userId: string, groupId: string) {
     await this.usersService.getById(userId, { select: { id: true } }); // check if user exist, if not throw an error
 
+    const group = await this.getById(groupId, { select: { owner_id: true } });
+
+    if (group.owner_id === userId) {
+      throw new ConflictException('Власник групи не може покинути групу');
+    }
+
     return await this.prisma.groupsOnUsers.delete({
       where: { user_id_group_id: { user_id: userId, group_id: groupId } },
     });
@@ -176,7 +213,10 @@ export class GroupsService {
     };
   }
 
-  private static checkIfUserAlreadyGroupMember(userId: string, group: any) {
+  private static checkIfUserAlreadyGroupMember(
+    userId: string,
+    group: any,
+  ): GroupDto {
     const groupMembers = group.members.map(({ id }) => id);
 
     return { ...group, is_member: groupMembers.includes(userId) };

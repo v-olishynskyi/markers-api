@@ -7,11 +7,11 @@ import {
   Delete,
   ParseUUIDPipe,
   UseGuards,
-  Query,
   Res,
   HttpStatus,
   Put,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import {
@@ -43,26 +43,47 @@ import {
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
-  @ApiOperation({ summary: 'Get groups', description: 'Get all groups' })
+  @ApiOperation({
+    summary: 'Get paginated groups',
+    description: 'Get all groups with paginations',
+  })
   @ApiPaginationResponse(GroupDto)
   @ApiQuery({ name: 'filter_by', required: false, enum: GroupsFilterBy })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'user_id', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @Get('/')
   paginated(@Req() request: Request) {
-    const userId = request['userId'];
     const params = request['query'];
+
+    if (params.filter_by === GroupsFilterBy.By_User && !params.user_id) {
+      throw new BadRequestException(
+        'Param "user_id" should be passed with filter_by.by_user',
+      );
+    }
+
+    const userId = params.user_id || request['userId'];
 
     return this.groupsService.paginated(userId, params);
   }
 
-  @ApiOperation({ summary: 'Get all groups', description: 'Get all groups' })
+  @ApiOperation({ summary: 'Get groups', description: 'Get all groups' })
   @ApiOkResponse({ type: [GroupDto] })
+  @ApiQuery({ name: 'filter_by', required: false, enum: GroupsFilterBy })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'user_id', required: false, type: String })
   @Get('/get-all')
   all(@Req() request: Request) {
-    const userId = request['userId'];
     const params = request['query'];
+
+    if (params.filter_by === GroupsFilterBy.By_User && !params.user_id) {
+      throw new BadRequestException(
+        'Param "user_id" should be passed with "filter_by.by_user"',
+      );
+    }
+
+    const userId = params.user_id || request['userId'];
 
     return this.groupsService.getAll(userId, params);
   }

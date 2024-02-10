@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpStatus,
   Param,
   ParseUUIDPipe,
@@ -19,7 +18,6 @@ import {
 import { UsersService } from './users.service';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
@@ -28,23 +26,21 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/api/auth/auth.guard';
-import { Prisma } from '@prisma/client';
 import { Response } from 'express';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UserDto,
-  UserProfileDto,
-} from 'src/models/users/dto';
+import { CreateUserDto, UpdateUserDto, UserDto } from 'src/models/users/dto';
 import { ApiPaginationResponse } from 'src/common/decorators';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesService } from 'src/models/files/files.service';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly filesService: FilesService,
+  ) {}
 
   @ApiOperation({ summary: 'Get all users without pagination' })
   @ApiResponse({ status: HttpStatus.OK, type: [UserDto] })
@@ -60,34 +56,18 @@ export class UsersController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @Get('/paginated')
   async getAUsersWithPagination(
+    @Req() req: Request,
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Query('search') search?: string | null,
-  ) {
-    return await this.usersService.paginated({
-      page,
-      limit,
-      search: search,
-    });
-  }
-
-  @ApiOperation({ summary: 'Get user profile' })
-  @ApiResponse({ status: HttpStatus.OK, type: UserProfileDto })
-  @Get('/profile')
-  async getProfile(
-    @Req() req: Request,
-    @Headers('X-Device-Ip') ip: string | null,
-    @Headers('X-App-Version') app_version: string | null,
+    @Query('search') search?: string,
   ) {
     const userId = req['userId'];
-    const userSessionId = req['userSessionId'];
 
-    return await this.usersService.getProfile(
-      userId,
-      userSessionId,
-      app_version,
-      ip,
-    );
+    return await this.usersService.paginated(userId, {
+      page,
+      limit,
+      search,
+    });
   }
 
   @ApiOperation({ summary: 'Get user', description: 'Get user by id' })
