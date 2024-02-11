@@ -7,8 +7,68 @@
   },
   {
     "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
-    "group_id": "e5d60aa1-8bf6-4dae-8f38-4bb387cf0ed4",
-    "created_at": "2023-12-20T23:39:03.805Z",
-    "updated_at": "2023-12-20T23:39:03.805Z"
+    "group_id": "1549776f-e9aa-4332-9c52-a3e9aebadad2",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
+    "group_id": "0f34075c-2e5f-462e-8ffa-a91cda88f965",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
+    "group_id": "73430989-7f0e-4008-ada4-533ab76830eb",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "721f8f45-1f83-4b66-a1bd-3f55faf7d512",
+    "group_id": "73430989-7f0e-4008-ada4-533ab76830eb",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "5ec7bd8e-ba2b-1287-4909-4d18a4e5747d",
+    "group_id": "c22274d5-4b19-4926-bdce-944dce4e078b",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "0b4f7134-635a-4c02-841f-6199cb5fe6f9",
+    "group_id": "1b8524ab-0b6e-4d76-8e83-3a86a6285c02",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "0b4f7134-635a-4c02-841f-6199cb5fe6f9",
+    "group_id": "634fa35f-e013-4f9c-bfe0-52cb2e39161f",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "0b4f7134-635a-4c02-841f-6199cb5fe6f9",
+    "group_id": "28db3e75-f607-4aa1-af34-37da9bdd1bc2",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "0b4f7134-635a-4c02-841f-6199cb5fe6f9",
+    "group_id": "19fbb7b8-84ee-444a-8157-2822d49f7024",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "0b4f7134-635a-4c02-841f-6199cb5fe6f9",
+    "group_id": "a6b0e711-cfc4-4750-b346-3e771f80864f",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
+  },
+  {
+    "user_id": "721f8f45-1f83-4b66-a1bd-3f55faf7d512",
+    "group_id": "a6b0e711-cfc4-4750-b346-3e771f80864f",
+    "created_at": "2023-12-20T06:23:28.015Z",
+    "updated_at": "2023-12-20T06:23:28.015Z"
   }
 ]

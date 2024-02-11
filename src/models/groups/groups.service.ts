@@ -157,7 +157,7 @@ export class GroupsService {
     const group = await this.findById(id, options, userId);
 
     if (!group) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('Групу не знайдено');
     }
 
     return group;
@@ -173,13 +173,13 @@ export class GroupsService {
   }
 
   async update(id: string, updateGroupDto: Prisma.GroupUpdateInput) {
-    await this.getById(id); // check if group exist, if not throw an error
+    await this.getById(id, { select: { id: true } }); // check if group exist, if not throw an error
 
     return this.groupsRepository.update(id, updateGroupDto, groupInclude);
   }
 
   async delete(id: string) {
-    await this.getById(id); // check if group exist, if not throw an error
+    await this.getById(id, { select: { id: true } }); // check if group exist, if not throw an error
 
     return this.groupsRepository.delete(id);
   }
@@ -187,7 +187,15 @@ export class GroupsService {
   async addMember(userId: string, groupId: string) {
     await this.usersService.getById(userId, { select: { id: true } }); // check if user exist, if not throw an error
 
-    return await this.prisma.groupsOnUsers.create({
+    const groupUser = await this.prisma.groupsOnUsers.findUnique({
+      where: { user_id_group_id: { group_id: groupId, user_id: userId } },
+    });
+
+    if (groupUser) {
+      throw new ConflictException('Користувач вже є учасников данної групи');
+    }
+
+    return this.prisma.groupsOnUsers.create({
       data: { user_id: userId, group_id: groupId },
     });
   }
@@ -195,13 +203,21 @@ export class GroupsService {
   async removeMember(userId: string, groupId: string) {
     await this.usersService.getById(userId, { select: { id: true } }); // check if user exist, if not throw an error
 
+    const groupUser = await this.prisma.groupsOnUsers.findUnique({
+      where: { user_id_group_id: { group_id: groupId, user_id: userId } },
+    });
+
+    if (!groupUser) {
+      throw new NotFoundException('Користувач не є учасником данної групи');
+    }
+
     const group = await this.getById(groupId, { select: { owner_id: true } });
 
     if (group.owner_id === userId) {
       throw new ConflictException('Власник групи не може покинути групу');
     }
 
-    return await this.prisma.groupsOnUsers.delete({
+    return this.prisma.groupsOnUsers.delete({
       where: { user_id_group_id: { user_id: userId, group_id: groupId } },
     });
   }
