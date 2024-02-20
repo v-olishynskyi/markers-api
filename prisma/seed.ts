@@ -58,7 +58,7 @@ async function groupsOnUsers(prisma: PrismaClient) {
         where: {
           user_id_group_id: { group_id: item.group_id, user_id: item.user_id },
         },
-        update: {},
+        update: item,
         create: item,
       }),
     ),
