@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { MarkersRepository } from './markers.repository';
 import { FilesService } from 'src/models/files/files.service';
 import { Prisma } from '@prisma/client';
@@ -94,7 +98,9 @@ export class MarkersService {
 
   async findById(
     id: string,
-    options?: Omit<Prisma.MarkerFindUniqueArgs, 'where'>,
+    options: Omit<Prisma.MarkerFindUniqueArgs, 'where'> = {
+      include: markerInclude,
+    },
   ) {
     const where: Prisma.MarkerWhereUniqueInput = { id };
 
@@ -121,10 +127,15 @@ export class MarkersService {
   async create(data: CreateMarkerDto, images: Array<Express.Multer.File>) {
     const author = await this.usersService.getById(data.author_id);
 
+    if (data.description && data.description?.length > 255) {
+      throw new BadRequestException('Description is too long');
+    }
+
     return this.prisma.$transaction(
       async () => {
         const markerData: Prisma.MarkerCreateInput = {
           name: data.name,
+          description: data.description,
           is_draft: data.is_draft,
           is_hidden: data.is_hidden,
           latitude: +data.latitude,
@@ -156,50 +167,44 @@ export class MarkersService {
   async update(
     id: string,
     data: UpdateMarkerDto,
-    images: Array<Express.Multer.File>,
+    newImages: Array<Express.Multer.File>,
   ) {
     const sourceMarker = (await this.getById(id, {
       select: {
         images: true,
       },
     })) as unknown as MarkerWithSelectedImages;
-
-    const sourceMarkerImagesIds = sourceMarker.images.map(({ id }) => id);
+    const sourceMarkerImagesId = sourceMarker.images.map(({ id }) => id);
     const updatingMarkerImagesIds = data.images;
-
-    // check if user add new image to marker
-    const newImages = updatingMarkerImagesIds.filter(
-      (el) => !sourceMarkerImagesIds.includes(el),
-    );
-
-    // check if user remove images from marker
-    const deletedImages = sourceMarkerImagesIds.filter(
+    const deletedImages = sourceMarkerImagesId.filter(
       (el) => !updatingMarkerImagesIds.includes(el),
     );
-
-    const updatedMarker = await this.markersRepository.update(id, {
+    await this.markersRepository.update(id, {
       ...data,
       images: {},
     });
-
-    if (newImages.length) {
-      // link new images with updated marker
-      await Promise.all(
-        newImages.map(
-          async (imgId) =>
-            await this.publicFileService.update(imgId, { marker_id: id }),
-        ),
-      );
-    }
-
     if (deletedImages.length) {
-      // delete unsued image from db
+      // delete unused image from db
       await Promise.all(
         deletedImages.map(
           async (imgId) => await this.publicFileService.delete(imgId),
         ),
       );
     }
+
+    if (newImages.length) {
+      await Promise.all(
+        newImages.map(
+          async (image) =>
+            await this.publicFileService.create({
+              file: image,
+              entity: { id: id, type: FileTypeEnum.MARKER_IMAGE },
+            }),
+        ),
+      );
+    }
+
+    const updatedMarker = await this.getById(id);
 
     return updatedMarker;
   }
