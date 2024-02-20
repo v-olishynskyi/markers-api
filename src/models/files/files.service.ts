@@ -51,7 +51,7 @@ export class FilesService {
 
     const s3 = new S3();
 
-    const key = `${uuid()}`;
+    const key = `${entity.type}-${uuid()}`;
 
     const uploadResult = await s3
       .upload({
@@ -63,6 +63,7 @@ export class FilesService {
       .promise();
 
     const entityData = {
+      user_id: undefined,
       marker_id: undefined,
       group_id: undefined,
       [`${entity.type}_id`]: entity.id,
@@ -87,5 +88,12 @@ export class FilesService {
     await this.getById(id);
 
     await this.publicFileRepository.delete(id);
+  }
+
+  async deleteMany(ids: string[]) {
+    const deletePromise = ids.map(
+      async (id) => await this.publicFileRepository.delete(id),
+    );
+    await Promise.all(deletePromise);
   }
 }

@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -24,6 +25,7 @@ import {
   FileBodyDto,
   PublicFileDto,
 } from 'src/models/files/dto';
+import FormDataToBodyInterceptor from 'src/models/markers/formdata-to-body.interceptor';
 
 @ApiTags('Files')
 @Controller('files')
@@ -51,23 +53,23 @@ export class FilesController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file'),
+    FormDataToBodyInterceptor([{ fieldName: 'type', extractToBody: true }]),
+  )
   @ApiCreatedResponse({ type: PublicFileDto })
   @Post('upload')
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: CreateFileDto,
+    @Body() body: any,
+    @Req() req: Request,
   ) {
-    try {
-      const response = await this.filesService.create({
-        file,
-        entity: body.entity,
-      });
+    const response = await this.filesService.create({
+      file,
+      entity: body,
+    });
 
-      return response;
-    } catch (error) {
-      throw new HttpException('Error when upload file', 500);
-    }
+    return response;
   }
 
   @ApiOperation({

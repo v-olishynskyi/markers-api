@@ -35,9 +35,31 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @Headers('X-Device-Ip') ip: string | null,
     @Headers('X-App-Version') app_version: string | null,
+    @Headers('user-agent') user_agent: string,
   ) {
+    const pattern =
+      /Mozilla\/[\d.]+ \((?<os>[^;]+);[^)]+\) AppleWebKit\/[\d.]+ \(KHTML, like Gecko\) Version\/[\d.]+ (?<browser>\w+)\/[\d.]+/;
+
+    const match = user_agent.match(pattern);
+
+    let browser = '';
+    let os = '';
+
+    if (match?.length) {
+      if (match) {
+        browser = match.groups?.browser || '';
+        os = match.groups?.os || '';
+      }
+    }
+
+    signInData.email = signInData.email.toLowerCase();
+
+    const data = signInData.device
+      ? signInData
+      : { ...signInData, device: { name: browser, platform: os } };
+
     const { access_token, refresh_token, session_id } =
-      await this.authService.signIn(signInData, ip, app_version);
+      await this.authService.signIn(data, ip, app_version);
 
     const response: SignInResponseDto = {
       access_token,
@@ -61,10 +83,9 @@ export class AuthController {
     @Body() signUpData: CreateUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    await this.authService.signUp({
-      ...signUpData,
-      email: signUpData.email.toLowerCase(),
-    });
+    signUpData.email = signUpData.email.toLowerCase();
+
+    await this.authService.signUp(signUpData);
 
     return res
       .status(HttpStatus.CREATED)
