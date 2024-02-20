@@ -30,4 +30,10 @@ export class GroupDto {
 
   @ApiProperty({ name: 'members', type: [UserDto] })
   members: UserDto[];
+
+  @ApiProperty({ name: 'is_member', type: Boolean })
+  is_member: boolean;
+
+  @ApiProperty({ name: 'is_owner', type: Boolean })
+  is_owner: boolean;
 }

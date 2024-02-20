@@ -84,7 +84,7 @@ export class GroupsService {
 
     const transformedGroups: GroupDto[] = groups.map((group) => {
       const groupWithTransformedMembers =
-        GroupsService.checkIfUserAlreadyGroupMember(
+        GroupsService.checkUserRelationByGroup(
           userId,
           GroupsService.transformGroupMembers(group),
         );
@@ -110,7 +110,7 @@ export class GroupsService {
 
     const transformedGroups: GroupDto[] = response.data.map((group) => {
       const groupWithTransformedMembers =
-        GroupsService.checkIfUserAlreadyGroupMember(
+        GroupsService.checkUserRelationByGroup(
           userId,
           GroupsService.transformGroupMembers(group),
         );
@@ -139,7 +139,7 @@ export class GroupsService {
       return group;
     }
 
-    const transformedGroup = GroupsService.checkIfUserAlreadyGroupMember(
+    const transformedGroup = GroupsService.checkUserRelationByGroup(
       userId,
       GroupsService.transformGroupMembers(group),
     );
@@ -229,12 +229,16 @@ export class GroupsService {
     };
   }
 
-  private static checkIfUserAlreadyGroupMember(
+  private static checkUserRelationByGroup(
     userId: string,
     group: any,
   ): GroupDto {
     const groupMembers = group.members.map(({ id }) => id);
 
-    return { ...group, is_member: groupMembers.includes(userId) };
+    return {
+      ...group,
+      is_member: groupMembers.includes(userId),
+      is_owner: group.owner_id === userId,
+    };
   }
 }
