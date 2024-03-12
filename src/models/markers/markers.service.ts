@@ -11,7 +11,12 @@ import { UsersService } from 'src/models/users/users.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { FileTypeEnum } from 'src/models/files/enums';
 import { paginator } from 'src/common/helpers';
-import { GetMarkersRequestParams, MarkersFilterBy } from './types';
+import {
+  GetMarkersRequestParams,
+  MarkersFilterBy,
+  MarkersSortBy,
+} from './types';
+import { SortByDirections } from 'src/common/shared/enums';
 
 type MarkerWithSelectedImages = Prisma.MarkerGetPayload<{
   select: { images: true };
@@ -41,6 +46,9 @@ export class MarkersService {
   ) {
     const { filter_by = MarkersFilterBy.All, search } = params;
 
+    const sort_by = params.sort_by || MarkersSortBy.UpdatedAt;
+    const direction = params.direction || SortByDirections.ASC;
+
     let where: Prisma.MarkerWhereInput = {};
 
     if (search) {
@@ -62,7 +70,7 @@ export class MarkersService {
 
     return await this.markersRepository.all({
       where,
-      options: { include: markerInclude },
+      options: { include: markerInclude, orderBy: { [sort_by]: direction } },
     });
   }
 

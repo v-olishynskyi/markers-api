@@ -25,7 +25,7 @@ import {
   FileBodyDto,
   PublicFileDto,
 } from 'src/models/files/dto';
-import FormDataToBodyInterceptor from 'src/models/markers/formdata-to-body.interceptor';
+import { FormDataToBodyInterceptor } from 'src/common/decorators';
 
 @ApiTags('Files')
 @Controller('files')

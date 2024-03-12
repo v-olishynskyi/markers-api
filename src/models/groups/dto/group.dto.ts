@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsUUID } from 'class-validator';
 import {
   ApiPropertyExamplesEnum,
@@ -17,6 +17,9 @@ export class GroupDto {
   @ApiProperty()
   @IsString({ message: ValidationMessagesEnum.MustBeString })
   name: string;
+
+  @ApiPropertyOptional()
+  description?: string;
 
   @ApiProperty({
     example: ApiPropertyExamplesEnum.Uuid,

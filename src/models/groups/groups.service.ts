@@ -11,6 +11,8 @@ import { GetGroupsRequestParams, GroupIncludeType } from './types';
 import { GroupsFilterBy } from 'src/models/groups/enums';
 import { paginator } from 'src/common/helpers';
 import { PrismaService } from 'src/database/prisma.service';
+import { FilesService } from 'src/models/files/files.service';
+import { FileTypeEnum } from 'src/models/files/enums';
 
 const groupInclude: Prisma.GroupInclude = {
   owner: {
@@ -65,6 +67,7 @@ export class GroupsService {
     private readonly groupsRepository: GroupsRepository,
     private readonly usersService: UsersService,
     private readonly prisma: PrismaService,
+    private readonly publicFileService: FilesService,
   ) {}
 
   async getAll(
@@ -143,6 +146,7 @@ export class GroupsService {
       userId,
       GroupsService.transformGroupMembers(group),
     );
+    console.log('GroupsService - transformedGroup:', transformedGroup);
 
     return transformedGroup;
   }
@@ -163,13 +167,38 @@ export class GroupsService {
     return group;
   }
 
-  async create(createGroupDto: CreateGroupDto) {
-    const owner = await this.usersService.getById(createGroupDto.owner_id);
+  async create(createGroupDto: CreateGroupDto, avatar: Express.Multer.File) {
+    const owner = await this.usersService.getById(createGroupDto.owner_id, {
+      select: { id: true },
+    });
 
-    return this.groupsRepository.create({
-      ...createGroupDto,
+    const data = {
+      name: createGroupDto.name,
+      description: createGroupDto.description,
+      privacy_code: createGroupDto.privacy_code,
+    };
+
+    const createdGroup = await this.groupsRepository.create({
+      ...data,
       owner: { connect: owner },
     });
+
+    await this.prisma.groupsOnUsers.create({
+      data: { group_id: createdGroup.id, user_id: createdGroup.owner_id },
+    });
+
+    if (avatar) {
+      await this.publicFileService.create({
+        file: avatar,
+        entity: { id: createdGroup.id, type: FileTypeEnum.GROUP_AVATAR },
+      });
+    }
+
+    return await this.getById(
+      createdGroup.id,
+      undefined,
+      createGroupDto.owner_id,
+    );
   }
 
   async update(id: string, updateGroupDto: Prisma.GroupUpdateInput) {

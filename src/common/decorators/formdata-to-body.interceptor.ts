@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 
-export default function FormDataToBodyInterceptor(
+export const FormDataToBodyInterceptor = (
   fields: { fieldName: string; extractToBody: boolean }[],
-): Type<NestInterceptor> {
+): Type<NestInterceptor> => {
   class FormDataToBodyInterceptorClass implements NestInterceptor {
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
       const request = context.switchToHttp().getRequest();
@@ -36,4 +36,4 @@ export default function FormDataToBodyInterceptor(
 
   const Interceptor = mixin(FormDataToBodyInterceptorClass);
   return Interceptor;
-}
+};

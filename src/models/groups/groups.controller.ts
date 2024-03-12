@@ -12,6 +12,8 @@ import {
   Put,
   Req,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import {
@@ -34,7 +36,9 @@ import { GroupsFilterBy } from 'src/models/groups/enums';
 import {
   ApiMessageResponse,
   ApiPaginationResponse,
+  FormDataToBodyInterceptor,
 } from 'src/common/decorators';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Groups')
 @ApiBearerAuth()
@@ -94,8 +98,10 @@ export class GroupsController {
   })
   @ApiOkResponse({ type: GroupDto })
   @Get(':id')
-  getById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groupsService.findById(id);
+  getById(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    const userId = req['userId'];
+
+    return this.groupsService.findById(id, undefined, userId);
   }
 
   @ApiOperation({
@@ -103,9 +109,28 @@ export class GroupsController {
     description: 'Create group with provided data',
   })
   @ApiCreatedResponse({ type: GroupDto })
+  @UseInterceptors(
+    FileInterceptor('avatar'),
+    FormDataToBodyInterceptor([{ fieldName: 'group', extractToBody: true }]),
+  )
   @Post('/')
-  createGroup(@Body() createGroupDto: CreateGroupDto) {
-    return this.groupsService.create(createGroupDto);
+  async createGroup(
+    @Body() createGroupDto: CreateGroupDto,
+    @UploadedFile() avatar: Express.Multer.File,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const userId = req['userId'];
+
+    const group = await this.groupsService.create(
+      { ...createGroupDto, owner_id: userId },
+      avatar,
+    );
+
+    return res
+      .status(HttpStatus.CREATED)
+      .json({ message: 'Групу успішно створено', data: group })
+      .send();
   }
 
   @ApiOperation({

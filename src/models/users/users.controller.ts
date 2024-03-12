@@ -74,9 +74,7 @@ export class UsersController {
   @ApiOkResponse({ type: UserDto })
   @Get('/:id')
   async getById(@Param('id', ParseUUIDPipe) id: string) {
-    const user = await this.usersService.findById(id, {
-      include: { avatar: true },
-    });
+    const user = await this.usersService.findById(id);
 
     return user;
   }

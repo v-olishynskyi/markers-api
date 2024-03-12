@@ -30,10 +30,12 @@ import {
   MarkerDto,
   UpdateMarkerDto,
 } from 'src/models/markers/dto';
-import { ApiPaginationResponse } from 'src/common/decorators';
+import {
+  ApiPaginationResponse,
+  FormDataToBodyInterceptor,
+} from 'src/common/decorators';
 import { Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import FormDataToBodyInterceptor from './formdata-to-body.interceptor';
 import { MarkersFilterBy } from './types';
 
 @ApiTags('Markers')
@@ -47,8 +49,14 @@ export class MarkersController {
   @ApiOkResponse({ type: [MarkerDto] })
   @ApiQuery({ name: 'user_id', required: true, type: String })
   @Get('/markers-by-user')
-  async getAllByUser(@Query('user_id') user_id: string) {
+  async getAllByUser(
+    @Query('user_id') user_id: string,
+    @Req() request: Request,
+  ) {
+    const params = request['query'];
+
     const markers = await this.markersService.getAll(user_id, {
+      ...params,
       filter_by: MarkersFilterBy.By_User,
     });
     return markers;

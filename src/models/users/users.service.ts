@@ -12,6 +12,25 @@ import { FileTypeEnum } from 'src/models/files/enums';
 import { PrismaService } from 'src/database/prisma.service';
 import { paginator } from 'src/common/helpers';
 
+export const userIncude: Prisma.UserInclude = {
+  avatar: true,
+  groups: {
+    include: {
+      group: {
+        include: {
+          avatar: true,
+          owner: true,
+        },
+      },
+    },
+  },
+  markers: {
+    include: {
+      author: true,
+    },
+  },
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -61,15 +80,25 @@ export class UsersService {
     return response;
   }
 
-  findById(id: string, options?: Omit<Prisma.UserFindUniqueArgs, 'where'>) {
+  async findById(
+    id: string,
+    options: Omit<Prisma.UserFindUniqueArgs, 'where'> = { include: userIncude },
+  ) {
     const where: Prisma.UserWhereUniqueInput = { id };
 
-    return this.usersRepository.one(where, options);
+    const user = await this.usersRepository.one(where, options);
+    console.log('UsersService - user:', user);
+
+    if (user) {
+      return UsersService.transformUserGroups(user);
+    }
+
+    return user;
   }
 
   async getById(
     id: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
+    options: Omit<Prisma.UserFindUniqueArgs, 'where'> = { include: userIncude },
   ) {
     const user = await this.findById(id, options);
 
@@ -77,23 +106,23 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return UsersService.transformUserGroups(user);
   }
 
   async findByEmail(
     email: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
+    options: Omit<Prisma.UserFindUniqueArgs, 'where'> = { include: userIncude },
   ) {
     const where: Prisma.UserWhereUniqueInput = { email };
 
     const user = await this.usersRepository.one(where, options);
 
-    return user;
+    return UsersService.transformUserGroups(user);
   }
 
   async getByEmail(
     email: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, 'where'>,
+    options: Omit<Prisma.UserFindUniqueArgs, 'where'> = { include: userIncude },
   ) {
     const user = await this.findByEmail(email, options);
 
@@ -101,7 +130,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return UsersService.transformUserGroups(user);
   }
 
   async create(data: CreateUserDto) {
@@ -177,5 +206,17 @@ export class UsersService {
     await this.getById(id, { select: { id: true } }); // check if user exist, if not throw error
 
     return await this.usersRepository.delete(id);
+  }
+
+  private static transformUserGroups(user) {
+    if (user.groups) {
+      const groups = user.groups.map(
+        (groupAssociativeEntity) => groupAssociativeEntity.group,
+      );
+
+      return { ...user, groups };
+    }
+
+    return user;
   }
 }

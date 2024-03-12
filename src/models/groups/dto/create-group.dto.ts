@@ -4,4 +4,9 @@ import { GroupDto } from 'src/models/groups/dto/group.dto';
 export class CreateGroupDto extends OmitType(GroupDto, [
   'id',
   'members',
-] as const) {}
+  'owner',
+  'is_member',
+  'is_owner',
+] as const) {
+  privacy_code: string;
+}
